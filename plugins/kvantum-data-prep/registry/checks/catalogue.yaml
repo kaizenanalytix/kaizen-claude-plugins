@@ -1,0 +1,490 @@
+# What every check means, in the client's language.
+#
+# The rule IDs are precise and auditable and mean nothing to the person reading
+# the data review. "KV-C11 failed: 3 interior zero runs of 4+ weeks" is exactly
+# right and still needs translating before it can be sent to Abbott. This file
+# is that translation, kept as data so it can be edited without touching code
+# and reviewed by the people who actually talk to the client.
+#
+# Every check carries four things:
+#
+#   looks_for      what the check actually tests, in one sentence
+#   why_it_matters what it does to the model if it is wrong — the reason the
+#                  client should care, not a restatement of the test
+#   ask            what we need back from them when it fails. A finding with no
+#                  ask is a finding nobody will action.
+#   evidence       how to turn the check's own detail into a table a person can
+#                  read without interpreting anything
+#
+# `evidence.columns` renames the internal fields to client-facing headers. This
+# is the whole point of the file: the report shows "Typical week" and "How
+# unusual", not "median" and "robust_z".
+
+version: 1
+
+groups:
+  completeness:
+    title: Completeness
+    blurb: >
+      Is everything here? Every week in the period, every breakdown we expect,
+      and a number in every cell that should have one.
+  consistency:
+    title: Consistency
+    blurb: >
+      Does this quarter line up with the last one? Same definitions, same
+      spellings, one row per thing, and it joins cleanly onto history.
+  movement:
+    title: Movement and outliers
+    blurb: >
+      Weeks and quarters that moved more than the series normally moves. These
+      are usually real — a promotion, a flight going dark — and they are worth
+      a sentence of confirmation before the model treats them as signal.
+  seasonality:
+    title: Seasonality
+    blurb: >
+      Series that repeat an annual shape. Worth naming, because a peak the
+      model can attribute to the calendar is a peak it stops attributing to
+      spend -- and the reason for a season is knowledge you have and the data
+      does not.
+
+  reconciliation:
+    title: Reconciliation
+    blurb: >
+      Do the numbers add up: breakdowns against their own totals, the weekly
+      file against the monthly source, and this load against the file your team
+      maintains by hand.
+
+checks:
+  KV-C00:
+    group: completeness
+    title: The load contains data
+    looks_for: The prepared file has at least one row.
+    why_it_matters: >
+      An empty file uploads without complaint and silently removes the whole
+      channel from the model.
+    ask: Send the extract for this channel.
+
+  KV-C01:
+    group: completeness
+    title: Every week in the period is present
+    looks_for: >
+      One row for every week between the first and last week of the load, on the
+      Saturday-ending grid, with no gaps and no dates that fall off it.
+    why_it_matters: >
+      A missing week is not read as "unknown" — it is read as a week with no
+      activity, which drags down the estimated effect of every driver that was
+      running at the time.
+    ask: >
+      For each week listed, confirm whether activity was genuinely zero or the
+      extract is short.
+    headline: "{n_weeks} weeks, {first} to {last}"
+    evidence:
+      from: missing
+      kind: values
+      label: Week with no row
+      empty_note: No weeks are missing from the grid.
+
+  KV-C02:
+    group: completeness
+    title: The load covers the period we asked for
+    looks_for: The first and last week of the file against the requested window.
+    why_it_matters: >
+      A load that stops short leaves the most recent weeks out of the model
+      entirely, which is where the decisions being made this quarter live.
+    ask: Confirm the extract covers the full quarter, or resend it.
+    evidence:
+      from: actual
+      kind: values
+      label: Weeks actually covered
+
+  KV-C04:
+    group: completeness
+    title: Every column the portal needs is present
+    looks_for: The columns Element X requires for this template.
+    why_it_matters: A missing required column fails the upload outright.
+    ask: None — this is ours to fix, not yours.
+    internal_only: true
+    evidence:
+      from: missing
+      kind: values
+      label: Missing column
+
+  KV-C05:
+    group: completeness
+    title: No blank numbers
+    looks_for: Empty cells in the measure columns — spend, impressions, calls, cases.
+    why_it_matters: >
+      A blank measure is ambiguous in a way a zero is not: we cannot tell "none
+      happened" from "not reported", and the two lead to different models.
+    ask: >
+      Confirm whether the blanks are true zeros or missing reporting, and resend
+      if the latter.
+    evidence:
+      from: __counts__
+      kind: counts
+      label: Measure
+      value_label: Blank cells
+
+  KV-C06:
+    group: completeness
+    title: Breakdowns are filled in
+    looks_for: >
+      How often each breakdown column is blank — the dimensions the model uses
+      to split a channel into its drivers.
+    why_it_matters: >
+      Rows with a blank breakdown cannot be attributed to the tactic that earned
+      them. The spend still counts, but it lands in an unlabelled bucket and the
+      breakdown it belongs to is understated.
+    ask: >
+      For each breakdown above the threshold, tell us whether the blanks are
+      expected for that sub-channel or whether the field can be populated in the
+      next extract.
+    evidence:
+      from: null_pct
+      kind: percent_map
+      label: Breakdown
+      value_label: Rows with no value
+      threshold_from: threshold_pct
+
+  KV-C07:
+    group: completeness
+    title: Nothing is parked in a placeholder bucket
+    looks_for: >
+      Values like "Unknown", "Other", "TBD" or "Needs classification" sitting in
+      a breakdown column, and how much volume is behind them.
+    why_it_matters: >
+      A placeholder is a real driver wearing a label the model cannot use. If it
+      carries meaningful spend, that spend is being credited to a bucket that
+      does not correspond to anything you can act on.
+    ask: >
+      Tell us what the placeholder rows actually are, so we can map them before
+      the load.
+    evidence:
+      from: hits
+      kind: records
+      empty_note: No placeholder classifications found.
+      columns:
+        - {field: column, label: Breakdown}
+        - {field: value, label: Placeholder value}
+        - {field: n_rows, label: Rows}
+        - {field: share, label: Share of volume, kind: percent}
+
+  KV-C03:
+    group: consistency
+    title: One row per thing
+    looks_for: >
+      Rows that repeat at the level the template records — the same week and
+      the same breakdown appearing more than once.
+    why_it_matters: >
+      Element X sums what it is given, so a genuine duplicate double-counts. The
+      common innocent cause is the opposite: the template does not carry the
+      column that actually tells two rows apart, so they look identical here and
+      are not.
+    ask: >
+      Confirm the repeated rows are separate real activity rather than the file
+      being appended twice.
+    evidence:
+      from: examples
+      kind: records_auto
+      max_columns: 8
+      empty_note: Every row is unique at the level the template records.
+
+  KV-C15:
+    group: consistency
+    title: This quarter joins cleanly onto the last
+    looks_for: >
+      The gap between the last week of history and the first week of the new
+      load, and whether the breakdowns on both sides match.
+    why_it_matters: >
+      A gap at the seam puts a hole in the middle of the model's history; a
+      breakdown that appears or vanishes at the seam splits one driver in two.
+    ask: Confirm the new extract is meant to start where it does.
+    evidence:
+      from: __pair__
+      kind: pair
+      fields: [history_last_week, load_first_week]
+      labels: [Last week of history, First week of this load]
+
+  TAXONOMY:
+    group: consistency
+    title: Breakdown values match the ones used before
+    looks_for: >
+      Every value in each breakdown column against the values the previous load
+      used — so a renamed partner, a respelled campaign or a re-specified
+      taxonomy shows up as a change rather than as a new driver.
+    why_it_matters: >
+      This is the failure that passes every other check. Totals reconcile to the
+      cent while a column quietly changes meaning, and the model sees one driver
+      as two unrelated ones with half the history each.
+    ask: >
+      For each column below, confirm whether the new values are a genuine
+      re-specification — in which case we will map the old values onto the new
+      ones — or a change we should query with the agency.
+    evidence:
+      from: turnover
+      kind: turnover
+      columns:
+        - {field: column, label: Breakdown}
+        - {field: previous, label: Values used before}
+        - {field: now, label: Values used now}
+        - {field: n_retired, label: No longer used}
+        - {field: n_new, label: New this load}
+
+  KV-C08:
+    group: movement
+    title: No negative measures
+    looks_for: Negative values in spend, impressions, calls or cases.
+    why_it_matters: >
+      A negative usually means a correction or a refund posted against the
+      original week. It is real accounting, but it makes that week look like
+      activity was withdrawn, which is not what happened.
+    ask: >
+      Confirm whether negatives are credits against an earlier period, and if so
+      which period they belong to.
+    evidence:
+      from: __counts__
+      kind: counts
+      label: Measure
+      value_label: Negative values
+
+  KV-C09:
+    group: movement
+    title: Spend, impressions and clicks agree with each other
+    looks_for: >
+      Weeks with impressions but no spend, spend with no impressions, or more
+      clicks than impressions.
+    why_it_matters: >
+      These combinations are usually a reporting seam — added value, a make-good,
+      or two systems with different cut-offs — and they distort the efficiency
+      the model reads off that week.
+    ask: >
+      Confirm whether the no-spend impressions are added value or bonus
+      inventory, so we can label them rather than treat them as free media.
+    evidence:
+      from: __map__
+      kind: labelled_counts
+      labels:
+        impressions_without_spend: Rows with impressions but no spend
+        spend_without_impressions: Rows with spend but no impressions
+        clicks_exceed_impressions: Rows with more clicks than impressions
+
+  KV-C10:
+    group: movement
+    title: Weeks that moved much more than the series usually moves
+    looks_for: >
+      Each breakdown's own week-to-week variation, and the weeks that sit far
+      outside it. The comparison is against that series' typical week, not a
+      fixed number, so a small always-on series and a large bursty one are
+      judged on their own terms.
+    why_it_matters: >
+      A genuine spike is signal the model should learn from. A spike caused by a
+      reporting artefact is noise it will learn from anyway, and attribute to
+      whatever else was running that week.
+    ask: >
+      For each week listed, a one-line confirmation of what happened — a
+      promotion, a flight change, a restatement, or nothing unusual.
+    headline: "{n_flagged} week(s) flagged across {n_series_examined} series"
+    evidence:
+      from: flagged
+      kind: records
+      collapse_weeks: true
+      empty_note: No week sits outside its own series' normal range.
+      columns:
+        - {field: group, label: Breakdown, kind: dims}
+        - {field: metric, label: Measure}
+        - {field: week, label: Week, kind: week_span}
+        - {field: value, label: That week, kind: number}
+        - {field: median, label: Typical week, kind: number}
+        - {field: robust_z, label: How far out, kind: zscore}
+    also:
+      from: not_examined
+      title: Series too short or too flat to test
+      kind: records
+      columns:
+        - {field: group, label: Breakdown, kind: dims}
+        - {field: metric, label: Measure}
+        - {field: reason, label: Why not tested, kind: reason}
+
+  KV-C11:
+    group: movement
+    title: Runs of zero weeks
+    looks_for: >
+      Stretches of consecutive zero weeks, separated into runs in the middle of
+      a series and runs at its start or end.
+    why_it_matters: >
+      A run in the middle is either a flight that paused — real, and the model
+      should know — or reporting that stopped while activity continued. A run at
+      the end is the one to watch: a finished flight and a short file look
+      identical from the data.
+    ask: >
+      For each run listed, confirm the channel was genuinely dark. Trailing
+      runs especially — those are the ones where a late-arriving file would
+      change the answer.
+    evidence:
+      from: flagged
+      kind: records
+      empty_note: No zero runs inside any series.
+      columns:
+        - {field: group, label: Breakdown, kind: dims}
+        - {field: metric, label: Measure}
+        - {field: run_weeks, label: Weeks at zero}
+        - {field: from, label: From, kind: date}
+        - {field: to, label: To, kind: date}
+    also:
+      from: edges
+      title: Zero runs at the start or end of a series
+      note: >
+        Reported, not failed. These are normal for a flight that had not started
+        or has finished — but a trailing run is also what a short file looks
+        like, so they are worth confirming.
+      kind: records
+      columns:
+        - {field: group, label: Breakdown, kind: dims}
+        - {field: metric, label: Measure}
+        - {field: edge, label: Start or end}
+        - {field: run_weeks, label: Weeks at zero}
+        - {field: from, label: From, kind: date}
+        - {field: to, label: To, kind: date}
+
+  KV-C12:
+    group: movement
+    title: Quarter-on-quarter moves worth a sentence
+    looks_for: >
+      Each breakdown's total per fiscal period against the period before, and
+      the moves beyond the threshold for this channel.
+    why_it_matters: >
+      A large quarter-on-quarter move is usually a real plan change, and knowing
+      which is which is the difference between the model learning a media effect
+      and learning a data change.
+    ask: One line per move on what drove it.
+    headline: "{n_flagged} move(s) beyond {pct_threshold}%"
+    evidence:
+      from: flagged
+      kind: records
+      empty_note: No quarter moved beyond the threshold for this channel.
+      columns:
+        - {field: group, label: Breakdown, kind: dims}
+        - {field: metric, label: Measure}
+        - {field: from_period, label: From, kind: period}
+        - {field: to_period, label: To, kind: period}
+        - {field: from_value, label: Was, kind: number}
+        - {field: to_value, label: Now, kind: number}
+        - {field: pct_change, label: Change, kind: signed_percent}
+
+  KV-C13:
+    group: reconciliation
+    title: Breakdowns add up to the TOTAL in your file
+    looks_for: >
+      For every period, the sum of the breakdown columns against the TOTAL
+      column in the same source file.
+    why_it_matters: >
+      When they disagree, one of the two is wrong and we cannot tell which from
+      here. Loading the breakdowns understates the channel; loading the total
+      loses the split.
+    ask: >
+      Check the TOTAL formula for the periods listed — in our experience this is
+      usually a formula whose range stopped short of a newly added column.
+    evidence:
+      from: worst
+      kind: records
+      empty_note: Every period's breakdowns sum to its TOTAL.
+      columns:
+        - {field: key, label: Period, kind: date}
+        - {field: parts, label: Breakdowns add to, kind: number}
+        - {field: total, label: TOTAL says, kind: number}
+        - {field: diff, label: Difference, kind: number}
+        - {field: pct, label: Difference, kind: signed_percent}
+
+  KV-C14:
+    group: reconciliation
+    title: The weekly file still totals what the monthly source said
+    looks_for: >
+      The annual total after spreading monthly figures across weeks, against the
+      monthly input, and every period against what the fiscal calendar predicts.
+    why_it_matters: >
+      This is the check that catches a month silently dropped in conversion.
+      Note that a small annual difference is expected and correct: the flat
+      divisor conserves the year rather than each month.
+    ask: None — this is ours, not yours.
+    internal_only: true
+    evidence:
+      from: offending_periods
+      kind: records
+      empty_note: Every period converts exactly as the calendar predicts.
+      columns:
+        - {field: period, label: Period, kind: date}
+        - {field: n_weeks, label: Weeks in period}
+        - {field: expected, label: Expected, kind: number}
+        - {field: weekly_out, label: Produced, kind: number}
+
+  KV-C16:
+    group: reconciliation
+    title: Coupon history reaches back far enough to compute redemptions
+    looks_for: >
+      Whether there are enough months of coupon drops before the start of the
+      load to fill the redemption profile, which reaches back up to eighteen
+      months.
+    why_it_matters: >
+      Redemptions in the first month of a load come from coupons dropped as
+      much as eighteen months earlier. If the extract begins where the load
+      begins, those opening months are computed from a profile with nothing
+      behind it and come out low — smoothly, plausibly, and by an amount no
+      other check can see.
+    ask: >
+      Send the coupon drops extract starting at least eighteen months before
+      the first month of the load.
+    evidence:
+      from: series
+      kind: records
+      empty_note: Every lagged series has the history its profile needs.
+      columns:
+        - {field: dims, label: Breakdown, kind: dims}
+        - {field: profile, label: Redemption profile}
+        - {field: months_of_history_before_window, label: Months of history}
+        - {field: months_the_profile_needs, label: Months needed}
+        - {field: first_month_understated_pct, label: First month understated by, kind: percent}
+
+  LAG_PROFILE:
+    group: reconciliation
+    title: The redemption profile is ours, not yours
+    looks_for: >
+      Whether the redemption profile used to turn coupon drops into monthly
+      redemptions came from your lag table or was inferred by us from the
+      consolidated file you already maintain.
+    why_it_matters: >
+      A recovered profile reproduces your own numbers closely, which is
+      evidence that we have the method right — it is not evidence that we have
+      the profile right. The two can differ and still agree on a year of
+      totals, and the difference would show up as the shape of a response
+      curve rather than as a number anyone would query.
+    ask: >
+      Send the lag table from the coupon drop calculation file — the monthly
+      redemption percentages by brand and channel — so we can replace the
+      inferred profile with yours.
+    evidence:
+      from: profiles
+      kind: records
+      columns:
+        - {field: profile, label: Profile}
+        - {field: series, label: Series using it}
+        - {field: months, label: Months in profile}
+        - {field: total, label: Share of drops redeemed, kind: percent}
+        - {field: heldout, label: Held-out error when fitted, kind: percent}
+
+  REFERENCE:
+    group: reconciliation
+    title: This load reproduces the file your team maintains
+    looks_for: >
+      A row-for-row comparison between what we generated and the consolidated
+      file your team builds by hand for the same period.
+    why_it_matters: >
+      This is the only check that proves the preparation is right rather than
+      merely plausible. Totals agreeing proves very little — a load can match on
+      every measure while its row count, column set and several of its mappings
+      are wrong.
+    ask: >
+      Nothing when it matches. When it does not, we bring you the specific rows
+      before anything is loaded.
+    evidence:
+      from: per_column
+      kind: comparison

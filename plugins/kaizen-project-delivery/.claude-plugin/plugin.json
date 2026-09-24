@@ -1,0 +1,9 @@
+{
+  "name": "kaizen-project-delivery",
+  "displayName": "PDP Delivery",
+  "description": "Helps delivery teams run the build phase of a project. Generates sprint and monthly review summaries straight from Jira, giving the team a consistent record of progress to share and review.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Kaizen Analytix LLC"
+  }
+}

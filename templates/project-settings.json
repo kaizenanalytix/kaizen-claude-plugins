@@ -1,0 +1,45 @@
+{
+  "_comment_1_when_to_use_this": "OPTIONAL and manual. Nothing in this marketplace writes this file for you — project-kickoff deliberately does not, because which plugins a developer has enabled is user-level configuration (~/.claude/settings.json), not something a scaffold should decide for whoever clones the repo next. Copy this into a PRODUCT repo's .claude/settings.json and commit it ONLY if you want teammates to get these plugins automatically on clone. If you just want them for yourself, enable them in ~/.claude/settings.json instead and ignore this file.",
+
+  "_comment_2_access": "If the 'github' source below is a private repo, anyone who clones a repo carrying this file needs read access to it (and `gh auth login` or a git credential helper) or they get an unresolvable marketplace and none of the skills. Never commit a local {\"source\": \"directory\"} path to a shared repo — it resolves on exactly one machine.",
+
+  "_comment_3_trim_this": "Trim enabledPlugins to what the repo actually is. Engineering repos: frontend-only repos don't need backend, backend-only repos don't need frontend or design-system; architecture-foundations, codebase-map and deployment are cheap to leave on for anything. Delivery (PDP) plugins belong in an engagement workspace rather than a product codebase, so they are off by default here.",
+
+  "extraKnownMarketplaces": {
+    "kaizen-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "rohituddagiri-kaizenglobal/kaizen-claude-plugins"
+      }
+    }
+  },
+
+  "enabledPlugins": {
+    "architecture-foundations@kaizen-plugins": true,
+    "codebase-map@kaizen-plugins": true,
+    "design-system@kaizen-plugins": true,
+    "frontend@kaizen-plugins": true,
+    "backend@kaizen-plugins": true,
+    "api-contract@kaizen-plugins": true,
+    "e2e-testing@kaizen-plugins": true,
+    "deployment@kaizen-plugins": true,
+
+    "kaizen-pdp-foundation@kaizen-plugins": false,
+    "kaizen-sales-handoff@kaizen-plugins": false,
+    "kaizen-solution-design@kaizen-plugins": false,
+    "kaizen-project-governance@kaizen-plugins": false,
+    "kaizen-project-delivery@kaizen-plugins": false,
+    "kaizen-project-closeout@kaizen-plugins": false,
+    "kvantum-data-prep@kaizen-plugins": false
+  },
+
+  "_comment_4_permissions": "The codebase-map cache lives at ~/.claude/kaizen/, outside the repo, so without these it prompts for approval every session. Paths use '~/' deliberately — it resolves per-user, so this works unchanged on every machine and OS. Never replace it with an absolute path like C:/Users/<name>/, which grants nothing on anyone else's machine.",
+
+  "permissions": {
+    "allow": [
+      "Read(~/.claude/kaizen/**)",
+      "Write(~/.claude/kaizen/**)",
+      "Edit(~/.claude/kaizen/**)"
+    ]
+  }
+}

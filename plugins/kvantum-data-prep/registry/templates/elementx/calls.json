@@ -1,0 +1,36 @@
+{
+  "template_id": "elementx.calls",
+  "label": "Calls",
+  "columns": [
+    "Week Starting Date",
+    "Week Ending Date",
+    "Brand",
+    "Product",
+    "Call Type",
+    "Call"
+  ],
+  "required": [
+    "Week Starting Date",
+    "Week Ending Date"
+  ],
+  "date_columns": {
+    "Week Starting Date": "%-m/%-d/%Y",
+    "Week Ending Date": "%-m/%-d/%Y"
+  },
+  "numeric_columns": [
+    "Call"
+  ],
+  "grain": [
+    "Week Starting Date",
+    "Brand",
+    "Product",
+    "Call Type"
+  ],
+  "notes": "captured from the maintained load Calls_Q424_Q325.csv",
+  "significant_figures": 10,
+  "block_columns": [
+    "Brand",
+    "Product",
+    "Call Type"
+  ]
+}

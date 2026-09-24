@@ -1,0 +1,8 @@
+{
+  "name": "backend",
+  "version": "0.5.0",
+  "description": "Build clean-architecture FastAPI backends: three-zone module structure, domain/service/infra layering, routing, testing, project bootstrap, file naming conventions, standard package choices, and FastAPI best practices — incorporating the community FastAPI Best Practices guide (async test client with httpx + ASGITransport, per-domain settings, SQL-first repositories, a shared Pydantic base model, database naming conventions, static/reversible Alembic migrations, and a Ruff lint/format baseline). Contract tests inject real auth headers into every generated case rather than calling the API bare, with a documented pattern for backends whose auth is enforced by request-signing middleware (HMAC-style) rather than a Depends()-based check, where dependency_overrides can't reach it at all. Also ships thin architecture-routing adapters for Node.js (Express/Fastify), NestJS, Django, and Java/Kotlin (typically Spring Boot) — stack detection, greenfield/existing routing, and the three-zone model translated into each stack's vocabulary — no naming/data-layer/testing/bootstrap depth yet for any of them, unlike the FastAPI adapter. Consults a sibling architecture-foundations plugin's existing-codebase-adoption skill before imposing conventions on an already-established service, and optionally a sibling codebase-map plugin for cached, checkpointed codebase facts instead of re-scanning the repo every session.",
+  "author": {
+    "name": "Kaizen Analytix"
+  }
+}

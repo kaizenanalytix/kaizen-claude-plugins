@@ -1,0 +1,255 @@
+/* ---------------------------------------------------------------------------
+ * app.css — the single source of truth for this application's visual system.
+ *
+ * Every colour, font size, spacing value, radius, and shadow the app uses is
+ * declared here and nowhere else. Components consume the utility classes these
+ * tokens generate; they never write raw values.
+ *
+ * Tailwind v4 (CSS-first config). For a v3 project, see references/tailwind-v3.md.
+ * -------------------------------------------------------------------------- */
+
+/* Fonts. Self-hosting is preferred in production (no third-party request on
+ * first paint, no dependency on Google's uptime). This CDN import is the
+ * quick-start; swap it for local @font-face declarations before launch.
+ * All @import rules must precede every other statement in the file. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap");
+
+@import "tailwindcss";
+
+/* Dark mode via a `.dark` class on <html>, rather than the OS preference alone,
+ * so the app can offer an explicit toggle. Add `.dark` to <html> to activate. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+ * 1. Theme-dependent values
+ *
+ * These are plain CSS variables rather than @theme entries because they change
+ * between light and dark. @theme values are static; the @theme inline block in
+ * §2 maps these onto Tailwind's colour namespace so `bg-surface` resolves to
+ * whichever value is active.
+ *
+ * The values below are a neutral starting point. Replace them with the brand
+ * palette — but replace them HERE, and only here.
+ * -------------------------------------------------------------------------- */
+
+:root {
+  /* Semantic surfaces and text */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --surface: oklch(1 0 0);
+  --surface-foreground: oklch(0.145 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+
+  /* Status roles — base, readable foreground, and a subtle fill */
+  --primary: oklch(0.55 0.19 258);
+  --primary-foreground: oklch(0.985 0 0);
+  --primary-subtle: oklch(0.95 0.03 258);
+
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+
+  --success: oklch(0.55 0.14 150);
+  --success-foreground: oklch(0.985 0 0);
+  --success-subtle: oklch(0.95 0.04 150);
+
+  --danger: oklch(0.577 0.222 27);
+  --danger-foreground: oklch(0.985 0 0);
+  --danger-subtle: oklch(0.95 0.04 27);
+
+  --warning: oklch(0.75 0.16 80);
+  --warning-foreground: oklch(0.205 0 0);
+  --warning-subtle: oklch(0.96 0.05 80);
+
+  --info: oklch(0.65 0.13 220);
+  --info-foreground: oklch(0.985 0 0);
+  --info-subtle: oklch(0.95 0.04 220);
+
+  /* Focus ring — deliberately the primary colour, so focus reads as "active"
+   * rather than as an error state. */
+  --ring: oklch(0.55 0.19 258);
+
+  /* Radius base. Every rung in §2 derives from this one value, so the whole
+   * product's roundness is a one-line change. */
+  --radius: 6px;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  /* Elevation in dark mode comes from a LIGHTER surface, not a heavier shadow —
+   * shadows are near-invisible against a dark background. */
+  --surface: oklch(0.205 0 0);
+  --surface-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+
+  --primary: oklch(0.65 0.18 258);
+  --primary-foreground: oklch(0.145 0 0);
+  --primary-subtle: oklch(0.3 0.07 258);
+
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+
+  --success: oklch(0.65 0.15 150);
+  --success-foreground: oklch(0.145 0 0);
+  --success-subtle: oklch(0.3 0.06 150);
+
+  --danger: oklch(0.65 0.2 27);
+  --danger-foreground: oklch(0.145 0 0);
+  --danger-subtle: oklch(0.3 0.08 27);
+
+  --warning: oklch(0.8 0.15 80);
+  --warning-foreground: oklch(0.145 0 0);
+  --warning-subtle: oklch(0.32 0.06 80);
+
+  --info: oklch(0.7 0.12 220);
+  --info-foreground: oklch(0.145 0 0);
+  --info-subtle: oklch(0.3 0.06 220);
+
+  --ring: oklch(0.65 0.18 258);
+}
+
+/* ---------------------------------------------------------------------------
+ * 2. The theme
+ *
+ * `@theme inline` is what turns the variables above into real utility classes:
+ * --color-surface here generates bg-surface / text-surface / border-surface.
+ * "inline" means the generated utilities reference var(--surface) rather than
+ * baking in its value, which is what lets .dark swap them at runtime.
+ * -------------------------------------------------------------------------- */
+
+@theme inline {
+  /* ---- Colour ---------------------------------------------------------- */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-subtle: var(--success-subtle);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-subtle: var(--info-subtle);
+
+  /* ---- Font families --------------------------------------------------- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Source Code Pro", ui-monospace, monospace;
+  --font-serif: "Instrument Serif", "Source Serif 4", Georgia, serif;
+
+  /* ---- Type scale ------------------------------------------------------
+   * Sizes are in px on purpose: an enterprise dashboard is not a document, and
+   * rem sizing here would make every value depend on a root font-size nobody
+   * is tracking. Each rung carries its own line-height. */
+  --text-micro: 10px;
+  --text-micro--line-height: 14px;
+  --text-meta: 11px;
+  --text-meta--line-height: 16px;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-label: 13px;
+  --text-label--line-height: 18px;
+  --text-body: 14px;
+  --text-body--line-height: 20px;
+  --text-body-md: 15px;
+  --text-body-md--line-height: 22px;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-card-title: 18px;
+  --text-card-title--line-height: 24px;
+  --text-section-title: 20px;
+  --text-section-title--line-height: 28px;
+  --text-heading: 24px;
+  --text-heading--line-height: 32px;
+  --text-page-title: 28px;
+  --text-page-title--line-height: 36px;
+  --text-display-sm: 32px;
+  --text-display-sm--line-height: 40px;
+  --text-display: 36px;
+  --text-display--line-height: 44px;
+  --text-display-lg: 40px;
+  --text-display-lg--line-height: 48px;
+  --text-display-xl: 48px;
+  --text-display-xl--line-height: 56px;
+
+  /* ---- Radius ---------------------------------------------------------- */
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+
+  /* ---- Shadows, named by elevation ------------------------------------- */
+  --shadow-raise: 0 1px 2px 0 oklch(0 0 0 / 0.05);
+  --shadow-card: 0 1px 3px 0 oklch(0 0 0 / 0.08), 0 1px 2px -1px oklch(0 0 0 / 0.06);
+  --shadow-dropdown: 0 4px 12px -2px oklch(0 0 0 / 0.12), 0 2px 4px -2px oklch(0 0 0 / 0.06);
+  --shadow-modal: 0 16px 40px -8px oklch(0 0 0 / 0.18), 0 4px 12px -4px oklch(0 0 0 / 0.08);
+
+  /* ---- Breakpoints ------------------------------------------------------
+   * Semantic aliases for the five tiers. Mobile is the base (no variant).
+   * These sit ALONGSIDE Tailwind's default sm/md/lg/xl/2xl rather than
+   * replacing them — vendored shadcn/ui components use `sm:` and `md:`
+   * internally, and clearing the defaults would silently break them.
+   * Rule: application code uses the semantic names below; the defaults exist
+   * only to keep vendored components working.
+   *
+   *   tablet  = md  (768px, iPad Mini portrait)
+   *   laptop  = lg  (1024px)
+   *   desktop = xl  (1280px, the primary design target)
+   *   wide    = 2xl (1536px)
+   */
+  --breakpoint-tablet: 768px;
+  --breakpoint-laptop: 1024px;
+  --breakpoint-desktop: 1280px;
+  --breakpoint-wide: 1536px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 3. Base layer
+ *
+ * The only place raw element selectors are allowed. Everything here is a
+ * global default, not component styling.
+ * -------------------------------------------------------------------------- */
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* A visible focus ring on every interactive element, shown for keyboard
+   * navigation but not on mouse click. Do not remove this without replacing
+   * it — an app with no focus indicator is unusable without a mouse. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}

@@ -1,0 +1,404 @@
+# Abbott / Ensure -- channel configuration for the Element X pre-load pipeline.
+#
+# This file is loaded and validated by `kvprep.config`, not read by a person
+# and retyped into function arguments. Every decision a load depends on lives
+# here: which sheet, which raw column, which dimension values, what emit
+# order, what number format. Adding a channel is a diff to this file.
+#
+# Two conventions that matter:
+#
+#   * A series is selected by matching the cross-tab's *header axes*, never by
+#     its LABEL alone. The outpatient workbook restates prior quarters side by
+#     side and several labels repeat; a label match can pick a restated block
+#     and double-count with nothing to notice it by. `block: latest` pins the
+#     match to the leftmost (current) block.
+#   * The `series:` order is the emit order. The hand-built files are not
+#     sorted alphabetically -- Direct Mail puts PAB last, Calls orders
+#     outpatient Bar/IM/Onc/Other -- and reproducing the values but not the
+#     order still gives a diff a person reads as a failure.
+#
+# Verified against: Q3 25 AC ENS GLU BPM Inputs.xlsx, 2025 Q2 BPM - OUTPATIENT
+# .xlsx, ENS_Spark_20250401_20260627.xlsx, and the Q4'24-Q3'25 consolidated
+# files plus Templates/OLA.xlsx in the client folder.
+
+schema_version: 2
+
+client:
+  id: abbott-ensure
+  name: Abbott — Ensure
+  industry: CPG / OTC healthcare
+  brand_filter: ENS # GLU series are excluded from the Ensure model
+  brand_label: Ensure
+
+fiscal_calendar:
+  pattern: [4, 4, 5] # weeks per fiscal month within a quarter
+  week_ending_weekday: Sat
+  year_start: 2024-09-29 # FY2025 week 1; override per run with --fy-start
+  n_years: 1
+  # 0 labels each block with its dominant calendar month, which is how the
+  # BPM extracts key their rows: the block starting 2024-09-29 is 2024-10-01.
+  period_label_offset_months: 0
+  # Flat divisor for monthly -> weekly. Conserves the year (52 / 4.33 =
+  # 12.009) and deliberately not the month. This is what the hand-built files
+  # do, and it is why they reproduce exactly. Set to null to conserve each
+  # month instead. Open question for Kvantum: deliberate smoothing, or
+  # inherited?
+  divisor: 4.33
+
+# ------------------------------------------------------------- sources -----
+
+sources:
+  acute_care:
+    file_pattern: "Q* AC ENS*BPM Inputs*.xlsx"
+    layout: bpm_crosstab
+    header_labels: [BPM PERIOD, UNITS, FSF, BRAND, HCP, LABEL]
+
+  outpatient:
+    file_pattern: "*BPM - OUTPATIENT*.xlsx"
+    layout: bpm_crosstab
+    # DM TYPE and HANDRAISER exist only on the DM sheet; a header row that is
+    # absent on a given sheet is simply not an available axis there.
+    header_labels: [BPM PERIOD, UNITS, DM TYPE, HANDRAISER, FSF, BRAND, HCP, LABEL]
+
+  spark:
+    file_pattern: "ENS_Spark_*.xlsx"
+    layout: flat_long
+    sheet: Sheet1
+    date_column: Date
+    week_ending_column: Sat_Week_End_Date
+    channel_column: Channel
+
+# ------------------------------------------------------------ channels -----
+
+channels:
+  # ------------------------------------------------------------- Cases ----
+  CASES:
+    pipeline: crosstab_series
+    template: elementx.cases
+    label: Cases
+    output_columns: [Week Starting Date, Week Ending Date, Brand, Product, Type, EQ Cases]
+    metrics: [EQ Cases]
+    dim_cols: [Brand, Product, Type]
+    group_cols: [Product]
+    significant_figures: 10
+    date_format: "%-m/%-d/%Y"
+    sort: block
+    series:
+      - dims: {Brand: Ensure, Product: Acute Care, Type: EQ Cases}
+        from:
+          source: acute_care
+          sheet_pattern: "* CASES"
+          select: {BRAND: ENS, FSF: AC, HCP: AC}
+      - dims: {Brand: Ensure, Product: VA, Type: EQ Cases}
+        from:
+          source: acute_care
+          sheet_pattern: "* CASES"
+          select: {BRAND: ENS, FSF: AC, HCP: VA}
+
+  # ------------------------------------------------------------- Calls ----
+  CALLS:
+    pipeline: crosstab_series
+    template: elementx.calls
+    label: Calls
+    notes: >
+      Two asymmetries that are not inferable from the raw file. Acute care is
+      loaded at HCP = TOTAL and labelled Call Type 'Blank', while outpatient
+      keeps its specialty breakdown. And raw PCP maps to IM here but to PC in
+      Coupon Drops.
+    output_columns: [Week Starting Date, Week Ending Date, Brand, Product, Call Type, Call]
+    metrics: [Call]
+    dim_cols: [Brand, Product, Call Type]
+    group_cols: [Product, Call Type]
+    significant_figures: 10
+    date_format: "%-m/%-d/%Y"
+    sort: block
+    series:
+      - dims: {Brand: Ensure, Product: Acute Care, Call Type: Blank}
+        from:
+          source: acute_care
+          sheet_pattern: "* CALLS"
+          select: {BRAND: ENS, FSF: AC, HCP: TOTAL}
+      - dims: {Brand: Ensure, Product: Outpatient, Call Type: Bar}
+        from: {source: outpatient, sheet_pattern: "*CALLS", block: latest, select: {BRAND: ENS, HCP: BAR}}
+      - dims: {Brand: Ensure, Product: Outpatient, Call Type: IM}
+        from: {source: outpatient, sheet_pattern: "*CALLS", block: latest, select: {BRAND: ENS, HCP: PCP}}
+      - dims: {Brand: Ensure, Product: Outpatient, Call Type: Onc}
+        from: {source: outpatient, sheet_pattern: "*CALLS", block: latest, select: {BRAND: ENS, HCP: ONC}}
+      - dims: {Brand: Ensure, Product: Outpatient, Call Type: Other}
+        from: {source: outpatient, sheet_pattern: "*CALLS", block: latest, select: {BRAND: ENS, HCP: OTHER}}
+
+  # ------------------------------------------------------- Direct Mail ----
+  DIRECT_MAIL:
+    pipeline: crosstab_series
+    template: elementx.direct_mail
+    label: Direct_Mail
+    notes: >
+      ONC and PC take the Non-HR column, not the Total; the handraiser split
+      is carried separately as ONC HR / PC HR. Taking the Total there would
+      double-count and still look plausible. The DMwC rows have no bottles
+      column in the raw file at all, so Bottles is an explicit constant 0 --
+      which is what the maintained file holds.
+    output_columns:
+      [Week Starting Date, Week Ending Date, Brand, Speciality, Category, Type, Bottles, Shipments]
+    metrics: [Bottles, Shipments]
+    dim_cols: [Brand, Speciality, Category, Type]
+    group_cols: [Speciality, Type]
+    significant_figures: 10
+    date_format: "%-m/%-d/%Y"
+    sort: block
+    series:
+      - dims: {Brand: Ensure, Speciality: Coupons, Category: Direct Mail w Coupon, Type: ONC}
+        from:
+          source: outpatient
+          sheet_pattern: "*DM"
+          block: latest
+          metrics:
+            Shipments: {select: {BRAND: ENS, DM TYPE: DMwC, HANDRAISER: Total, HCP: ONC, UNITS: Shipments}}
+            Bottles: {constant: 0}
+      - dims: {Brand: Ensure, Speciality: Coupons, Category: Direct Mail w Coupon, Type: PC}
+        from:
+          source: outpatient
+          sheet_pattern: "*DM"
+          block: latest
+          metrics:
+            Shipments: {select: {BRAND: ENS, DM TYPE: DMwC, HANDRAISER: Total, HCP: PCP, UNITS: Shipments}}
+            Bottles: {constant: 0}
+      - dims: {Brand: Ensure, Speciality: Samples & Coupons, Category: Direct Mail w Samples & Coupons, Type: BAR}
+        from:
+          source: outpatient
+          sheet_pattern: "*DM"
+          block: latest
+          metrics:
+            Shipments: {select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: Total, HCP: BAR, UNITS: Shipments}}
+            Bottles: {select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: Total, HCP: BAR, UNITS: Bottles}}
+      - dims: {Brand: Ensure, Speciality: Samples & Coupons, Category: Direct Mail w Samples & Coupons, Type: ONC}
+        from:
+          source: outpatient
+          sheet_pattern: "*DM"
+          block: latest
+          metrics:
+            Shipments: {select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: NON-HR, HCP: ONC, UNITS: Shipments}}
+            Bottles: {select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: NON-HR, HCP: ONC, UNITS: Bottles}}
+      - dims: {Brand: Ensure, Speciality: Samples & Coupons, Category: Direct Mail w Samples & Coupons, Type: ONC HR}
+        from:
+          source: outpatient
+          sheet_pattern: "*DM"
+          block: latest
+          metrics:
+            Shipments: {select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: HR, HCP: ONC, UNITS: Shipments}}
+            Bottles: {select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: HR, HCP: ONC, UNITS: Bottles}}
+      - dims: {Brand: Ensure, Speciality: Samples & Coupons, Category: Direct Mail w Samples & Coupons, Type: PC}
+        from:
+          source: outpatient
+          sheet_pattern: "*DM"
+          block: latest
+          metrics:
+            Shipments: {select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: NON-HR, HCP: PCP, UNITS: Shipments}}
+            Bottles: {select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: NON-HR, HCP: PCP, UNITS: Bottles}}
+      - dims: {Brand: Ensure, Speciality: Samples & Coupons, Category: Direct Mail w Samples & Coupons, Type: PC HR}
+        from:
+          source: outpatient
+          sheet_pattern: "*DM"
+          block: latest
+          metrics:
+            Shipments: {select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: HR, HCP: PCP, UNITS: Shipments}}
+            Bottles: {select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: HR, HCP: PCP, UNITS: Bottles}}
+      - dims: {Brand: Ensure, Speciality: PAB All, Category: PAB, Type: PAB}
+        from:
+          source: outpatient
+          sheet_pattern: "*DM"
+          block: latest
+          metrics:
+            Shipments: {select: {BRAND: ENS, DM TYPE: PAB, HCP: TOTAL, UNITS: Shipments}}
+            Bottles: {select: {BRAND: ENS, DM TYPE: PAB, HCP: TOTAL, UNITS: Bottles}}
+
+  # ------------------------------------------------------ Coupon Drops ----
+  COUPON_DROPS:
+    pipeline: crosstab_series
+    template: elementx.coupon_drops
+    label: Coupon_Drops
+    # Reproduces the client's file to within a few percent using a recovered
+    # redemption profile. It stays unverified until Kvantum confirm the profile
+    # and supply the pieces below that no fit can reach.
+    status: unverified
+    # The ONLY reason this channel is gated. Supply a confirmed redemption
+    # table -- `--lag-factors <file>`, or set `status: supplied` in
+    # lag-factors.yaml -- and the channel verifies itself on the next run.
+    # Nothing else here needs editing, which is the point: a status somebody
+    # has to remember to flip gets flipped late, or early.
+    unverified_until: lag_profiles_confirmed
+    notes: >
+      A coupon dropped in month m is redeemed across the following 16-18
+      months, so the figure the model needs is redemptions, not drops:
+      redemptions(t) = SUM over k of profile[k] x drops(t-k). Field force uses
+      the raw drop count directly (multiplier 1.00). Direct mail in this
+      vintage has no coupon column at all, so the drop count is estimated as
+      shipments x a coupons-per-shipment factor. Both the profile and the
+      factors were recovered from the client's own consolidated file and are
+      unconfirmed. From 2026 the client supplies actual DM coupon counts -
+      point those series at the coupon column and set multiplier 1.
+    output_columns: [Week Starting Date, Week Ending Date, HCP Type, Specialty Group, Redemptions]
+    metrics: [Redemptions]
+    dim_cols: [HCP Type, Specialty Group]
+    group_cols: [HCP Type]
+    significant_figures: 10
+    date_format: "%-m/%-d/%Y"
+    sort: block
+    series:
+      - dims: {HCP Type: Acute Care FSF Coupons, Specialty Group: Blank}
+        from: {source: acute_care, sheet_pattern: "*COUPON DROPS*", select: {BRAND: ENS, FSF: AC, HCP: TOTAL}}
+        transform: {profile: hcp_fsf, multiplier: 1.0}
+      # Raw PCP maps to PC here, and to IM in Calls. Not inferable; that is
+      # exactly why it lives in the registry.
+      - dims: {HCP Type: Outpatient FSF Coupons, Specialty Group: PC}
+        from: {source: outpatient, sheet_pattern: "*COUP DROPS*", block: latest, select: {BRAND: ENS, HCP: PCP}}
+        transform: {profile: hcp_fsf, multiplier: 1.0}
+      - dims: {HCP Type: Outpatient FSF Coupons, Specialty Group: ONC}
+        from: {source: outpatient, sheet_pattern: "*COUP DROPS*", block: latest, select: {BRAND: ENS, HCP: ONC}}
+        transform: {profile: hcp_fsf, multiplier: 1.0}
+      - dims: {HCP Type: Outpatient FSF Coupons, Specialty Group: BAR}
+        from: {source: outpatient, sheet_pattern: "*COUP DROPS*", block: latest, select: {BRAND: ENS, HCP: BAR}}
+        transform: {profile: hcp_fsf, multiplier: 1.0}
+      - dims: {HCP Type: Outpatient FSF Coupons, Specialty Group: Others}
+        from: {source: outpatient, sheet_pattern: "*COUP DROPS*", block: latest, select: {BRAND: ENS, HCP: OTHER}}
+        transform: {profile: hcp_fsf, multiplier: 1.0}
+      # Direct mail with coupons only. The DMwC shipment series is too sparse
+      # to recover a profile of its own from, so it borrows the with-samples
+      # profile and only its multiplier was fitted - one unknown against
+      # twelve months, which is well posed where a 19-tap profile was not.
+      # ONC is zero throughout this window, so its multiplier is the PC one
+      # rather than a fitted number: stated here so that a quarter where ONC
+      # becomes non-zero does not quietly run on an invented factor.
+      - dims: {HCP Type: Direct Mail With Coupons, Specialty Group: ONC}
+        from: {source: outpatient, sheet_pattern: "*DM", block: latest, select: {BRAND: ENS, DM TYPE: DMwC, HANDRAISER: Total, HCP: ONC, UNITS: Shipments}}
+        transform:
+          profile: direct_mail_samples
+          multiplier: 78.9926
+          note: >
+            Not fitted - this series is zero for every month of the window
+            used. Borrowed from DMwC PC. Confirm before any load in which ONC
+            direct mail with coupons is non-zero.
+      - dims: {HCP Type: Direct Mail With Coupons, Specialty Group: PC}
+        from: {source: outpatient, sheet_pattern: "*DM", block: latest, select: {BRAND: ENS, DM TYPE: DMwC, HANDRAISER: Total, HCP: PCP, UNITS: Shipments}}
+        transform:
+          profile: direct_mail_samples
+          multiplier: 78.9926
+          note: >
+            Fitted as a single scalar with the profile held fixed: annual total
+            within 1.0%, held-out error 3.3% on the last four months. Sits
+            alongside the with-samples PC factor of about 76, which is what you
+            would expect of the same mail stream.
+      # Direct mail with samples and coupons: shipments x coupons-per-shipment,
+      # then lagged. The two distinct factors - about 76 for PC and BAR, about
+      # 100 for ONC - came out of the same fit as the profile.
+      - dims: {HCP Type: Direct Mail With Samples & Coupons, Specialty Group: BAR}
+        from: {source: outpatient, sheet_pattern: "*DM", block: latest, select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: Total, HCP: BAR, UNITS: Shipments}}
+        transform: {profile: direct_mail_samples, multiplier: 75.3300}
+      - dims: {HCP Type: Direct Mail With Samples & Coupons, Specialty Group: ONC}
+        from: {source: outpatient, sheet_pattern: "*DM", block: latest, select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: NON-HR, HCP: ONC, UNITS: Shipments}}
+        transform: {profile: direct_mail_samples, multiplier: 99.9503}
+      - dims: {HCP Type: Direct Mail With Samples & Coupons, Specialty Group: ONC HR}
+        from: {source: outpatient, sheet_pattern: "*DM", block: latest, select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: HR, HCP: ONC, UNITS: Shipments}}
+        transform: {profile: direct_mail_samples, multiplier: 100.4470}
+      - dims: {HCP Type: Direct Mail With Samples & Coupons, Specialty Group: PC}
+        from: {source: outpatient, sheet_pattern: "*DM", block: latest, select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: NON-HR, HCP: PCP, UNITS: Shipments}}
+        transform: {profile: direct_mail_samples, multiplier: 76.1048}
+      - dims: {HCP Type: Direct Mail With Samples & Coupons, Specialty Group: PC HR}
+        from: {source: outpatient, sheet_pattern: "*DM", block: latest, select: {BRAND: ENS, DM TYPE: DMwS, HANDRAISER: HR, HCP: PCP, UNITS: Shipments}}
+        transform: {profile: direct_mail_samples, multiplier: 76.5581}
+      - dims: {HCP Type: PAB, Specialty Group: PC}
+        from: {source: outpatient, sheet_pattern: "*DM", block: latest, select: {BRAND: ENS, DM TYPE: PAB, HCP: TOTAL, UNITS: Shipments}}
+
+  # --------------------------------------------------------------- OLA ----
+  OLA:
+    pipeline: flat_rows
+    template: elementx.ola
+    label: OLA
+    notes: >
+      22 columns, not the 54 of the portal's blank export, and no aggregation:
+      the maintained load carries one row per raw row. Six of these mappings
+      cannot be read off the blank export -- Publisher takes Channel_Detail
+      (not the partner), Placement takes Abbott_Partner, and Target Business
+      Channel takes Audience. A load built from the blank export reconciled to
+      the cent on impressions, clicks and spend while all of that was wrong.
+    source: spark
+    filter:
+      Channel: [OLA]
+    output_columns:
+      - Week Starting Date
+      - Week Ending Date
+      - Brand
+      - "Publisher " # the trailing space is real and the upload matches on it
+      - Campaign Name
+      - Objective
+      - Target Business Channel
+      - Placement
+      - Media Type
+      - Product Name
+      - Ad Duration
+      - Line Name
+      - Campaign Type
+      - Ad Group
+      - Campaign Bid Strategy Type
+      - Retailer
+      - Network
+      - Tactic
+      - Agency Name
+      - Impressions
+      - Clicks
+      - Spend
+    metrics: [Impressions, Clicks, Spend]
+    dim_cols:
+      ["Publisher ", Placement, Objective, Target Business Channel, Product Name, Retailer]
+    group_cols: ["Publisher "]
+    grain:
+      [Week Starting Date, Week Ending Date, Brand, "Publisher ", Campaign Name, Objective,
+       Target Business Channel, Placement, Product Name, Campaign Bid Strategy Type,
+       Retailer, Network]
+    aggregate: false
+    # One row per raw row, in the extract's own order -- the maintained load
+    # does not aggregate and does not re-sort. Sorting would put a diff on
+    # every row while every value matched.
+    sort: source
+    coherence_cols: [Spend, Impressions, Clicks]
+    # Raw-column drift: a partner renaming itself in the extract.
+    reconcile_columns:
+      [Channel_Detail, Abbott_Partner, Abbott_Channel, Funnel_Classification,
+       Objective_Category_Type, Tactic, Product_Name, Audience]
+    # Template-column drift: the client re-specifying the Element X taxonomy
+    # underneath the load. Against the real previous load, `Publisher ` went
+    # from 19 partner names to 4 channel codes and Objective from 80 audience
+    # descriptors to 4 funnel stages. Every metric reconciled to the cent
+    # throughout; this is the only check that sees it. Needs
+    # value-dictionary-template.json -- seed it with `prep_cli.py
+    # seed-dictionary --history Templates/OLA.xlsx --sheet "Previous template"`.
+    reconcile_output_columns:
+      ["Publisher ", Objective, Target Business Channel, Placement, Product Name,
+       Campaign Name, Retailer, Network, Campaign Bid Strategy Type]
+    mapping:
+      Brand: Abbott_Product
+      "Publisher ": Channel_Detail
+      Campaign Name: Campaign_Name
+      Objective: Funnel_Classification
+      Target Business Channel: Audience
+      Placement: Abbott_Partner
+      Product Name: Product_Name
+      Campaign Bid Strategy Type: Funnel_Classification
+      Retailer: Abbott_Channel
+      Network: Abbott_Channel
+      Impressions: Impressions
+      Clicks: Clicks
+      Spend: Spend
+      Week Ending Date: Sat_Week_End_Date
+    derived:
+      Week Starting Date: minus_days(Sat_Week_End_Date, 6)
+    # Deliberately blank for OLA. Element X accepts the columns; this client's
+    # OLA load does not populate them.
+    constants:
+      Media Type: ""
+      Ad Duration: ""
+      Line Name: ""
+      Campaign Type: ""
+      Ad Group: ""
+      Tactic: ""
+      Agency Name: ""

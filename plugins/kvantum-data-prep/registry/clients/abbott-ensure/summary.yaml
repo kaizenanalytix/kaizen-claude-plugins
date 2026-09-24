@@ -1,0 +1,105 @@
+# Abbott / Ensure -- the input summary workbook.
+#
+# Read off the client's own `Ensure Data Review Input Summary Q226.xlsx`. The
+# sheet names, the order, the grain and the group row are theirs; this file
+# records them so the generated workbook lands where their team already looks.
+#
+# `grain` is the grain the CLIENT SENDS, not the grain the model uses. The HCP
+# extracts arrive monthly and become weekly by a 4.33 divisor; the summary
+# shows the monthly figures, because those are the ones the client can check
+# against their own source. The modelled weekly series is written to its own
+# sheet where it cannot be mistaken for an input.
+#
+# A channel that runs but is named by no sheet here is an error, not a silent
+# omission -- see summary.SummaryError.
+
+schema_version: 1
+
+title: Ensure Data Review Input Summary
+
+cover_sheet: Model & Hypothesis
+change_log_sheet: Change Log
+
+# What counts as worth a sentence. Everything the EDA pass reports is gated on
+# one of these, so quietening a noisy check is an edit here rather than a code
+# change. Defaults live in kvprep.eda.DEFAULT_THRESHOLDS; anything set here
+# overrides them.
+thresholds:
+  qoq_pct: 35.0 # quarter-on-quarter move worth asking about
+  yoy_pct: 50.0
+  divergence_pct: 25.0 # series in one family moving opposite ways
+  robust_z: 3.5
+  outlier_min_ratio: 1.5 # ... and at least this many times its own median
+  flat_run: 6 # identical non-zero value, this many periods running
+  dormant_periods: 2 # quarters of silence before a channel counts as stopped
+  new_series_periods: 6
+  rate_shift_pct: 40.0 # CPM/CPC move that suggests a unit change
+  magnitude_shift_ratio: 5.0
+  correlation: 0.85 # above this, two drivers cannot be told apart
+  restatement_pct: 0.5 # a prior period differing by more than this is restated
+  seasonal_index: 1.4
+
+sheets:
+  - sheet: Calls, Cases, Samples
+    order: 1
+    grain: monthly
+    channels: [CASES, CALLS]
+    note: >-
+      Acute Care and Outpatient calls, equivalent cases and samples, as sent in
+      the BPM workbooks.
+
+  - sheet: Direct Mail
+    order: 2
+    grain: monthly
+    group_row: true # they carry DMwC / DMwS / PAB above the channel row
+    channels: [DIRECT_MAIL]
+    note: >-
+      Shipments and bottles by direct mail type. The ONC and PC rows take the
+      Non-HR column rather than the Total, which is a mapping decision recorded
+      in channels.yaml.
+
+  - sheet: HCP Coupons
+    order: 3
+    grain: monthly
+    channels: [COUPON_DROPS]
+    note: >-
+      Coupon DROPS as distributed -- not redemptions. The model input is the
+      drops convolved with a redemption profile; that series is on the Modelled
+      series sheet, and the profile is in lag-factors.yaml.
+
+  - sheet: OLA
+    order: 4
+    grain: weekly
+    channels: [OLA]
+    # Their sheet shows eight publishers. The load carries one row per raw row
+    # across six dimensions; grouping the summary that finely gives a sheet
+    # 180 columns wide made of six-part keys, which is not a summary of
+    # anything. The load keeps its full detail either way -- this only decides
+    # what the review shows.
+    by: ["Publisher "] # the trailing space is real, and matches channels.yaml
+    max_series: 24
+    note: Online display, weekly, by publisher.
+    rates:
+      - name: CPM
+        numerator: Spend
+        denominator: Impressions
+        scale: 1000
+        format: currency2
+
+# The cover sheet: which breakdowns each channel is modelled at. Carried from
+# the previous workbook when one is supplied; this is the fallback and the
+# record of what we believe when none is.
+breakdowns:
+  OLA (Non-Retail): [Phase of Funnel, Category type, Targeting Tactic, Product, TargetingDeliveryType]
+  OLA (Amazon): [Phase of Funnel, Category type, Product, Ad Type]
+  OLA (Walmart & Instacart): [Phase of Funnel, Category type, Targeting Tactic, Product, Ad Type]
+  Direct Mail: [Category, Type]
+  Outpatient Calls: [Specialty]
+  Outpatient FSF Coupons: [Specialty]
+
+considerations:
+  - >-
+    Coupon redemption processing may have been delayed or shifted to months in
+    which the coupon was not actually redeemed.
+  - >-
+    Samples being shipped versus delivered in person.

@@ -1,0 +1,8 @@
+{
+  "name": "design-system",
+  "version": "0.1.0",
+  "description": "Framework- and CSS-library-agnostic visual foundation applied before the first component exists: an explicit pixel typography scale with semantic names, a design-token catalog (colors, spacing, radius, shadows, interaction states), and five responsive breakpoint tiers for enterprise-desktop-primary applications — plus one Tailwind adapter skill that writes those tokens into a real app.css @theme block. Exists so font sizes, colors, and spacing are chosen from a named scale rather than invented per component.",
+  "author": {
+    "name": "Kaizen Analytix"
+  }
+}

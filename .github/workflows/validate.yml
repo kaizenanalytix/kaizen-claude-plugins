@@ -1,0 +1,39 @@
+name: Validate marketplace
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  marketplace:
+    name: Manifests and structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Repo consistency checks
+        run: node scripts/validate.mjs
+      - name: Claude Code manifest validation
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude plugin validate .
+          for dir in plugins/*/; do
+            claude plugin validate "$dir"
+          done
+
+  kvantum-tests:
+    name: kvantum-data-prep tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/kvantum-data-prep
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy openpyxl pyyaml pytest
+      - run: python -m pytest tests -q

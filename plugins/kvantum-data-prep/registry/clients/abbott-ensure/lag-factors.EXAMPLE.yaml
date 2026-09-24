@@ -1,0 +1,79 @@
+# EXAMPLE redemption table -- copy this, put your own numbers in it, and run:
+#
+#     prep_cli.py run --client abbott-ensure --channel COUPON_DROPS \
+#         --raw <the BPM workbooks> --lag-factors my-lag-table.yaml --out out/
+#
+# Nothing in the plugin needs editing. The file you pass replaces the profiles
+# shipped with it for that run, and Coupon Drops stops being gated the moment
+# every profile it uses is marked `status: supplied`.
+#
+# ---------------------------------------------------------------- the numbers
+#
+# `months[k]` is the SHARE of a drop redeemed k months after the drop, as a
+# FRACTION. months[0] is the drop month itself, months[1] the month after, and
+# so on for as long as the coupon lives (16-18 months for Ensure).
+#
+#     redemptions(t) = SUM over k of  months[k] x drops(t - k)
+#
+# So a profile reading [0.02, 0.06, 0.14, ...] means 2% of a drop is redeemed
+# in the month it lands, 6% the month after, 14% the month after that.
+#
+# The loader refuses, loudly:
+#   * percentages written as whole numbers -- 12 rather than 0.12. A table in
+#     the wrong unit would multiply every figure by a hundred and still look
+#     entirely plausible, so this is checked rather than trusted.
+#   * negative shares.
+#   * a profile summing above 1.5 (a coupon cannot be redeemed more than once,
+#     give or take a scale factor).
+#   * a profile named by a series but missing from the file. A series that
+#     needs a profile must never quietly fall back to running unlagged.
+#
+# The shares do NOT have to sum to 1. Whatever fraction is never redeemed is
+# simply absent, and the total is reported back to you so you can sanity-check
+# it against your own redemption rate.
+#
+# --------------------------------------------------------------- the profiles
+#
+# Two are needed for Abbott/Ensure as the channel is currently configured.
+# `channels.yaml` says which series uses which; if your table splits more
+# finely than this (by brand, say), add profiles here under any names you like
+# and point the series at them in channels.yaml.
+
+version: 1
+
+profiles:
+  # Every field force series -- acute care, and outpatient PC / ONC / BAR /
+  # Others. These use the raw drop count directly, with no multiplier.
+  hcp_fsf:
+    status: supplied # <- 'supplied' means these are yours. Do not change to
+    #                      'recovered' unless they are a guess: that word is
+    #                      what keeps the channel gated.
+    source: "Kvantum coupon drop calculation file, <sheet>, <date>" # <- say where
+    note: >
+      Replace the months below with your own. The list here is the shape our
+      inference produced and is a PLACEHOLDER -- it is not your table.
+    months: [
+      0.020748, 0.062204, 0.138307, 0.153461, 0.145715, 0.120466,
+      0.080168, 0.070444, 0.077990, 0.061517, 0.036958, 0.027178,
+      0.001062, 0.000000, 0.000000, 0.003357, 0.000425, 0.000000,
+      0.000000
+    ]
+
+  # Direct mail sent with samples. Before 2026 the extract carries shipments
+  # rather than coupons, so channels.yaml multiplies by a coupons-per-shipment
+  # factor first; this profile applies to the resulting coupon count.
+  direct_mail_samples:
+    status: supplied
+    source: "Kvantum coupon drop calculation file, <sheet>, <date>"
+    note: PLACEHOLDER -- replace with your own monthly shares.
+    months: [
+      0.010542, 0.048612, 0.126743, 0.160724, 0.158879, 0.130394,
+      0.089180, 0.072244, 0.064077, 0.050489, 0.033062, 0.021505,
+      0.007104, 0.001948, 0.000000, 0.000000, 0.000000, 0.000000,
+      0.000000
+    ]
+
+  # If your table also covers direct mail sent with coupons only, add it here
+  # as `direct_mail_coupons` and point those series at it in channels.yaml.
+  # We deliberately ship no profile for it: our inference gave a held-out error
+  # of 32%, and no profile is better than a fitted one that looks confident.

@@ -1,0 +1,8 @@
+{
+  "name": "api-contract",
+  "version": "0.1.0",
+  "description": "Single source of truth for data shapes crossing the frontend/backend boundary. Generates typed DTOs for both sides from one OpenAPI schema so frontend and backend never drift and stay decoupled from each other's source code.",
+  "author": {
+    "name": "Kaizen Analytix"
+  }
+}

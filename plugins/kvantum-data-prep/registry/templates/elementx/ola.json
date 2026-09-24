@@ -1,0 +1,46 @@
+{
+  "template_id": "elementx.ola",
+  "label": "OLA",
+  "columns": [
+    "Week Starting Date",
+    "Week Ending Date",
+    "Brand",
+    "Publisher ",
+    "Campaign Name",
+    "Objective",
+    "Target Business Channel",
+    "Placement",
+    "Media Type",
+    "Product Name",
+    "Ad Duration",
+    "Line Name",
+    "Campaign Type",
+    "Ad Group",
+    "Campaign Bid Strategy Type",
+    "Retailer",
+    "Network",
+    "Tactic",
+    "Agency Name",
+    "Impressions",
+    "Clicks",
+    "Spend"
+  ],
+  "required": [
+    "Brand",
+    "Week Starting Date",
+    "Week Ending Date"
+  ],
+  "date_columns": {
+    "Week Starting Date": "%m/%d/%Y",
+    "Week Ending Date": "%m/%d/%Y"
+  },
+  "numeric_columns": [
+    "Impressions",
+    "Clicks",
+    "Spend"
+  ],
+  "grain": [],
+  "notes": "captured from the maintained load Templates/OLA.xlsx [Updated template] -- 22 columns, NOT the 54 of the portal blank export",
+  "significant_figures": null,
+  "block_columns": []
+}

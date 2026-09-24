@@ -1,0 +1,118 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "kaizen-plugins",
+  "owner": {
+    "name": "Kaizen Analytix LLC"
+  },
+  "metadata": {
+    "description": "Kaizen Analytix's internal Claude Code plugins: the Project Delivery Process (PDP) lifecycle, full-stack engineering conventions, and client data-prep tooling.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "kaizen-pdp-foundation",
+      "source": "./plugins/kaizen-pdp-foundation",
+      "description": "Shared foundation for every PDP plugin: scaffolds the standard project folder structure and checklists in SharePoint/OneDrive, enforces file conventions, and defines the guardrails.",
+      "category": "delivery",
+      "keywords": ["pdp", "project-onboarding", "guardrails", "report-card", "sharepoint"]
+    },
+    {
+      "name": "kaizen-sales-handoff",
+      "source": "./plugins/kaizen-sales-handoff",
+      "description": "Sales-to-delivery handoff: KT brief, kickoff deck and project plan, initial backlog (pushed to Jira), and the RAID log and RACI chart.",
+      "category": "delivery",
+      "keywords": ["pdp", "kt-brief", "kickoff", "backlog", "jira", "raid", "raci"]
+    },
+    {
+      "name": "kaizen-solution-design",
+      "source": "./plugins/kaizen-solution-design",
+      "description": "Analyze & Design phase: business requirements, technical design docs, data models, solution-overview, data-flow, API-sequence and architecture diagrams, plus a build handoff package.",
+      "category": "delivery",
+      "keywords": ["pdp", "brd", "technical-design", "data-model", "erd", "diagrams", "drawio"]
+    },
+    {
+      "name": "kaizen-project-governance",
+      "source": "./plugins/kaizen-project-governance",
+      "description": "Status reports built from the project plan and live Jira progress, feeding the project governance scorecard.",
+      "category": "delivery",
+      "keywords": ["pdp", "status-report", "governance", "scorecard", "jira"]
+    },
+    {
+      "name": "kaizen-project-delivery",
+      "source": "./plugins/kaizen-project-delivery",
+      "description": "Build phase: sprint and monthly review summaries generated straight from Jira.",
+      "category": "delivery",
+      "keywords": ["pdp", "sprint-review", "jira"]
+    },
+    {
+      "name": "kaizen-project-closeout",
+      "source": "./plugins/kaizen-project-closeout",
+      "description": "Project wrap-up: support plan handoff, client sign-off, case study, lessons learned, and project archive.",
+      "category": "delivery",
+      "keywords": ["pdp", "closeout", "sign-off", "case-study", "archive"]
+    },
+    {
+      "name": "architecture-foundations",
+      "source": "./plugins/architecture-foundations",
+      "description": "Stack-agnostic architecture principles (clean-architecture zones, state, test pyramid), the greenfield kickoff orchestrator, and the adopt-vs-defer decision for existing codebases. Ships SessionStart and PreToolUse hooks.",
+      "category": "engineering",
+      "keywords": ["architecture", "clean-architecture", "kickoff", "hooks"]
+    },
+    {
+      "name": "codebase-map",
+      "source": "./plugins/codebase-map",
+      "description": "Per-machine cache of codebase structure facts, refreshed on a git-SHA checkpoint, so skills can orient without re-reading the repo every session.",
+      "category": "engineering",
+      "keywords": ["codebase", "cache", "context", "hooks"]
+    },
+    {
+      "name": "design-system",
+      "source": "./plugins/design-system",
+      "description": "Visual foundation defined before the first component: typography scale, design tokens, responsive breakpoints, and a Tailwind @theme adapter.",
+      "category": "engineering",
+      "keywords": ["design-system", "tokens", "typography", "tailwind"]
+    },
+    {
+      "name": "frontend",
+      "source": "./plugins/frontend",
+      "description": "Domain-modular React apps (Vite, React Router, RTK Query, shadcn/ui, Vitest), with thin architecture adapters for Vue and Angular.",
+      "category": "engineering",
+      "keywords": ["react", "vite", "rtk-query", "shadcn", "vitest", "vue", "angular"]
+    },
+    {
+      "name": "backend",
+      "source": "./plugins/backend",
+      "description": "Clean-architecture FastAPI backends with testing, bootstrap and best practices, plus thin adapters for Node.js, NestJS, Django and Spring.",
+      "category": "engineering",
+      "keywords": ["fastapi", "python", "backend", "nodejs", "nestjs", "django", "spring"]
+    },
+    {
+      "name": "api-contract",
+      "source": "./plugins/api-contract",
+      "description": "One OpenAPI schema as the source of truth, generating typed DTOs for frontend and backend so they never drift.",
+      "category": "engineering",
+      "keywords": ["openapi", "api-contract", "codegen", "types"]
+    },
+    {
+      "name": "e2e-testing",
+      "source": "./plugins/e2e-testing",
+      "description": "Cross-stack Playwright tests that verify UI action, API request, business logic and database state as one chain, with human-in-the-loop scoping.",
+      "category": "engineering",
+      "keywords": ["playwright", "e2e", "testing"]
+    },
+    {
+      "name": "deployment",
+      "source": "./plugins/deployment",
+      "description": "Chooses how an app should ship before writing anything: Dockerfiles, CI/CD pipelines, dev/staging/prod config, secrets, and rollback.",
+      "category": "engineering",
+      "keywords": ["deployment", "docker", "ci-cd", "github-actions", "environments"]
+    },
+    {
+      "name": "kvantum-data-prep",
+      "source": "./plugins/kvantum-data-prep",
+      "description": "Kvantum Element X pre-load prep: raw client extracts plus template in, validated load-ready file and an input-review dashboard out.",
+      "category": "data",
+      "keywords": ["kvantum", "element-x", "mmm", "data-validation", "eda"]
+    }
+  ]
+}

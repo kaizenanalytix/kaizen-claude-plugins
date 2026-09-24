@@ -1,0 +1,87 @@
+# Abbott / Ensure -- validation thresholds and waivers.
+#
+# Loaded by `kvprep.config` and merged into the arguments the validation suite
+# is called with. Until v0.2.0 this file was documentation: a threshold here
+# and a hand-typed literal at the call site could disagree, and the same load
+# would get a different verdict depending on who ran it. Now the call site has
+# no literals -- change a threshold here, and say in the load report what
+# changed and why. A silently loosened threshold is how a check stops meaning
+# anything.
+#
+# An override naming a channel that does not exist in channels.yaml is an
+# error, not a no-op: an override on "OLA " never fires, and the report then
+# reads PASS at a threshold nobody chose.
+
+defaults:
+  dimension_null_pct: 5.0 # KV-C06
+  outlier_z: 5.0 # KV-C10, robust median/MAD z-score
+  zero_run_weeks: 4 # KV-C11
+  step_change_pct: 50.0 # KV-C12
+  parts_vs_total_pct: 0.5 # KV-C13
+  annual_conservation_pct: 0.5 # KV-C14
+
+overrides:
+  OLA:
+    # Objective_Category_Type and Tactic are only populated for the retail
+    # sub-channels in the Spark extract. That is a real mapping gap to raise
+    # with the client, so the rule is left tight and expected to FAIL as a
+    # WARN -- do not raise this to hide it.
+    dimension_null_pct: 5.0
+    # Retail media is genuinely bursty around promotional events.
+    outlier_z: 6.0
+
+  CALLS:
+    # HCP series are smoothed by the 4.33 divisor, so week-to-week variance is
+    # low and a genuine anomaly shows up at a lower threshold.
+    outlier_z: 4.0
+    step_change_pct: 35.0
+
+  CASES:
+    outlier_z: 4.0
+    step_change_pct: 35.0
+
+  DIRECT_MAIL:
+    outlier_z: 4.0
+    step_change_pct: 35.0
+    # Eleven series carry trailing zero runs and the maintained file has the
+    # same zeros, so this is the client's reporting lag rather than a pipeline
+    # gap. Left at the default anyway: a finished flight and a short file look
+    # identical from here, and the warning is what prompts the confirming email.
+    zero_run_weeks: 4
+
+  COUPON_DROPS:
+    outlier_z: 4.0
+    step_change_pct: 35.0
+
+waivers:
+  # A waiver is a documented decision to accept one named rule's failure for
+  # one named load. It carries an owner and an expiry so it cannot become
+  # permanent by neglect: an expired waiver is reported as expired and the
+  # underlying failure stands. A waiver that matches no failing rule is
+  # reported as stale -- usually a rule that was renamed. Empty is the correct
+  # state most of the time.
+  - rule_id: KV-C03
+    channel: OLA
+    # No `load:` -- this one is structural, not a property of one quarter.
+    reason: >
+      The 22-column OLA template drops Creative_Name and Ad_ID, which are what
+      actually distinguish these rows, so a load at the template's own grain
+      carries duplicates by construction. Verified against the maintained
+      Templates/OLA.xlsx: over the 52,107 rows of the Dec-2025..Jul-2026 load
+      the generated file is row-for-row identical to the file the client's team
+      maintains, duplicates included -- the same 7,209 full-row and 39,733
+      key-only duplicates on both sides. Element X sums them. Deduplicating
+      here would make the load differ from the maintained file and lose real
+      volume. Revisit if the template ever carries a creative-level column.
+    accepted_by: TBC
+    expires: 2027-03-31
+
+  - rule_id: KV-C07
+    channel: OLA
+    load: Q2-FY26
+    reason: >
+      14 rows carry Channel = 'NEEDS CLASSIFICATION' with zero spend and 44
+      impressions from Amazon Media Group. Immaterial, but the classification
+      gap is raised with the client for the next extract.
+    accepted_by: TBC
+    expires: 2026-12-31

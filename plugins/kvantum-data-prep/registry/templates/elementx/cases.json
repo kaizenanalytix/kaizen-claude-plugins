@@ -1,0 +1,36 @@
+{
+  "template_id": "elementx.cases",
+  "label": "Cases",
+  "columns": [
+    "Week Starting Date",
+    "Week Ending Date",
+    "Brand",
+    "Product",
+    "Type",
+    "EQ Cases"
+  ],
+  "required": [
+    "Week Starting Date",
+    "Week Ending Date"
+  ],
+  "date_columns": {
+    "Week Starting Date": "%-m/%-d/%Y",
+    "Week Ending Date": "%-m/%-d/%Y"
+  },
+  "numeric_columns": [
+    "EQ Cases"
+  ],
+  "grain": [
+    "Week Starting Date",
+    "Brand",
+    "Product",
+    "Type"
+  ],
+  "notes": "captured from the maintained load Cases_Q424_Q325.csv",
+  "significant_figures": 10,
+  "block_columns": [
+    "Brand",
+    "Product",
+    "Type"
+  ]
+}

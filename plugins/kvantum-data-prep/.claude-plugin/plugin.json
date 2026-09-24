@@ -1,0 +1,26 @@
+{
+  "name": "kvantum-data-prep",
+  "version": "0.7.0",
+  "description": "Automates the pre-load data preparation for the Kvantum Element X portal and the data review that goes with it. One command takes the raw client extracts plus the maintained template and returns the load-ready file plus ONE document -- the input summary in the client's own layout, the exploratory analysis, and the load rules that decide whether it is safe to upload -- as a self-contained HTML page and a matching workbook.",
+  "author": {
+    "name": "Kaizen Analytix LLC"
+  },
+  "keywords": [
+    "kvantum",
+    "element x",
+    "marketing mix modeling",
+    "mmm",
+    "data validation",
+    "template mapping",
+    "media data",
+    "hcp data",
+    "input summary",
+    "data consolidation",
+    "fiscal calendar",
+    "value reconciliation",
+    "exploratory analysis",
+    "eda",
+    "outlier detection",
+    "restatement"
+  ]
+}

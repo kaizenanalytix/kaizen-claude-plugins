@@ -1,0 +1,9 @@
+{
+  "name": "kaizen-project-closeout",
+  "displayName": "PDP Closure",
+  "description": "Helps delivery teams wrap up a project cleanly. Prepares the ongoing support plan for handoff, captures formal client sign-off, writes up the project as a case study, and closes things out with a lessons-learned summary and a properly archived project.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Kaizen Analytix LLC"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "kaizen-solution-design",
+  "displayName": "Solution Design",
+  "description": "Helps delivery teams work through the Analyze & Design phase of an engagement: capturing business requirements, drafting the technical design, modelling data, and producing solution-overview, data-flow, API-sequence, and technical-architecture diagrams, plus a design handoff package for downstream build teams.",
+  "version": "2.0.0",
+  "author": {
+    "name": "Kaizen Analytix LLC"
+  }
+}

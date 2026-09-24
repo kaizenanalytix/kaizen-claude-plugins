@@ -1,0 +1,33 @@
+{
+  "template_id": "elementx.coupon_drops",
+  "label": "Coupon Drops",
+  "columns": [
+    "Week Starting Date",
+    "Week Ending Date",
+    "HCP Type",
+    "Specialty Group",
+    "Redemptions"
+  ],
+  "required": [
+    "Week Starting Date",
+    "Week Ending Date"
+  ],
+  "date_columns": {
+    "Week Starting Date": "%-m/%-d/%Y",
+    "Week Ending Date": "%-m/%-d/%Y"
+  },
+  "numeric_columns": [
+    "Redemptions"
+  ],
+  "grain": [
+    "Week Starting Date",
+    "HCP Type",
+    "Specialty Group"
+  ],
+  "notes": "captured from the maintained load Coupon_Drops_Q424_Q325.csv",
+  "significant_figures": 10,
+  "block_columns": [
+    "HCP Type",
+    "Specialty Group"
+  ]
+}

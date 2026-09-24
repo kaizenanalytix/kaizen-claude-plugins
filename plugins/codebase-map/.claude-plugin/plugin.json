@@ -1,0 +1,8 @@
+{
+  "name": "codebase-map",
+  "version": "0.2.1",
+  "description": "Maintains a per-machine cache of codebase structure facts and a one-line-per-file/per-folder description tree (~/.claude/kaizen/<project-name>/codebase-map.json), refreshed via a git-SHA checkpoint, so any discipline-specific skill (frontend, backend, or otherwise) can orient itself without re-reading the whole codebase every session. Seeds itself cheaply at greenfield kickoff, when the repo is still a skeleton, rather than paying for a cold first scan of a mature codebase later.",
+  "author": {
+    "name": "Kaizen Analytix"
+  }
+}

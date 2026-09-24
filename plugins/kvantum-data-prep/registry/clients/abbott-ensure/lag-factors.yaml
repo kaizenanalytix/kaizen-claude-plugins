@@ -1,0 +1,69 @@
+# Coupon redemption lag profiles.
+#
+# A coupon dropped in month m is not redeemed in month m. It carries a 16-18
+# month expiry and is redeemed gradually across that window, so
+#
+#     redemptions(t) = SUM over k of  profile[k] x drops(t - k)
+#
+# `months[k]` is the share of a drop redeemed k months after it. The client
+# owns these numbers and updates them each period; they vary by brand and by
+# channel family.
+#
+# STATUS MATTERS. `supplied` means these came from the client's own lag table.
+# `recovered` means we inferred them from their consolidated file because the
+# table had not reached us yet -- the arithmetic reproduces their numbers, but
+# the profile itself is a hypothesis until someone at Kvantum confirms it, and
+# the channel stays unverified while that is true.
+
+version: 1
+
+profiles:
+
+  hcp_fsf:
+    status: recovered
+    source: >
+      Fitted against Coupon_Drops_Q424_Q325.csv, jointly across all five field
+      force series (acute care, and outpatient PC / ONC / BAR / Others), which
+      share one profile to within the precision of the data. Every series
+      solved to a scale of 1.00 -- confirming the transcript: for field force
+      the raw drop count is used directly, with no shipments multiplier.
+    heldout_error_pct: 1.5
+    note: >
+      Fitted on eight months and tested on the four held back: mean error 1.5%,
+      worst series 3.9%. On a harder six-and-six split the tail of the profile
+      is not pinned down (mean 7.7%), so treat the SHAPE as approximate and the
+      SCALE of 1.00 as solid. Replace this wholesale the moment the client's
+      own table arrives.
+    months: [
+      0.020748, 0.062204, 0.138307, 0.153461, 0.145715, 0.120466,
+      0.080168, 0.070444, 0.077990, 0.061517, 0.036958, 0.027178,
+      0.001062, 0.000000, 0.000000, 0.003357, 0.000425, 0.000000,
+      0.000000
+    ]
+
+  direct_mail_samples:
+    status: recovered
+    source: >
+      Fitted against Coupon_Drops_Q424_Q325.csv across the five direct-mail
+      with-samples series (PC, PC HR, ONC, ONC HR, BAR), which share one
+      profile. The per-series coupons-per-shipment factors come out of the same
+      fit and are in channels.yaml, not here.
+    heldout_error_pct: 1.1
+    note: >
+      The best-determined profile of the three: mean held-out error 1.1% on an
+      eight-and-four split and 2.2% on six-and-six, worst series 3.4%. Five
+      series over twelve months constrain one shared profile well.
+    months: [
+      0.000000, 0.000000, 0.012849, 0.068590, 0.112175, 0.110653,
+      0.085993, 0.094464, 0.094331, 0.081296, 0.103794, 0.098964,
+      0.078517, 0.023781, 0.008339, 0.008435, 0.008398, 0.009420,
+      0.000000
+    ]
+
+  # direct_mail_coupons is deliberately absent.
+  #
+  # The DMwC shipment series is too sparse in this vintage to recover anything
+  # from -- held-out error 32% on the easy split and 100% on the hard one. A
+  # profile fitted that badly would be worse than none, because it would look
+  # like an answer. DMwC therefore has no profile, and the series that need one
+  # say so rather than quietly using a neighbour's.

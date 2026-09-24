@@ -1,0 +1,9 @@
+{
+  "name": "kaizen-sales-handoff",
+  "displayName": "PDP Sales Handoff",
+  "description": "Helps delivery teams pick up a newly sold project from sales and get it off the ground. Turns the sales materials into a knowledge-transfer brief for the delivery team, prepares the kickoff deck and initial project plan, stands up the project backlog (and pushes it to Jira), and sets up the RAID log and RACI chart that keep roles and risks clear from day one.",
+  "version": "3.0.0",
+  "author": {
+    "name": "Kaizen Analytix LLC"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "kaizen-project-governance",
+  "displayName": "PDP Governance",
+  "description": "Helps delivery teams keep stakeholders informed during a project. Produces clear status reports by pulling from the project plan and live Jira progress, and feeds the same information into the overall project governance scorecard.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Kaizen Analytix LLC"
+  }
+}

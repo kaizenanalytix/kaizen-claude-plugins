@@ -1,0 +1,171 @@
+{
+  "channels": {
+    "OLA": {
+      "columns": {
+        "Abbott_Channel": {
+          "aliases": {},
+          "canonical": [
+            "Display",
+            "Programmatic Display",
+            "Programmatic Video",
+            "Retail Display"
+          ],
+          "sources": [
+            "history 2025-04..2026-03"
+          ]
+        },
+        "Abbott_Partner": {
+          "aliases": {},
+          "canonical": [
+            "Epsilon - Display",
+            "Instacart",
+            "Ogury",
+            "PM Precision Amazon",
+            "Walmart - Offsite",
+            "Walmart - Onsite"
+          ],
+          "sources": [
+            "history 2025-04..2026-03"
+          ]
+        },
+        "Audience": {
+          "aliases": {},
+          "canonical": [
+            "A18+ Ensure Past Purchasers",
+            "Active lifestyle Fitness Shoppers + Health Fitness Contextual Categories",
+            "Circana Competitive Buyer",
+            "Circana Current Buyers",
+            "Circana Lapsed Buyers",
+            "Circana Verified Competitive Protein",
+            "Competitive Conquesting",
+            "Cord Cutters",
+            "Core Medical",
+            "Costco",
+            "Crossix - Weight Gain",
+            "Determined Health Manager",
+            "Energy Bar Buyers",
+            "Ensure Brand Viewers",
+            "Ensure Competitive Conquesting Boost and Premier Protein",
+            "Ensure Current Buyers",
+            "Ensure Lapsed Buyers",
+            "Ensure Likely Buyers + Health Contextual Categories",
+            "Heal & Personal Care",
+            "Health",
+            "Health Vitamin Shoppers + Branded/Unbranded KCT",
+            "Immune Support",
+            "In Market Lifestyle",
+            "Lapsed Purchasers",
+            "Meal Replacement Searchers",
+            "Nutritional Shake Category Shoppers + Health Contextual Categories",
+            "Parents with Picky Eaters",
+            "RTG Recent Buyers",
+            "Scintilla Competitive",
+            "Walmart Protein Purchased Based"
+          ],
+          "sources": [
+            "history 2025-04..2026-03"
+          ]
+        },
+        "Channel_Detail": {
+          "aliases": {},
+          "canonical": [
+            "EPSILON - DISPLAY",
+            "OGURY",
+            "OLA AMAZON",
+            "OLA INSTACART",
+            "OLA WALMART"
+          ],
+          "sources": [
+            "history 2025-04..2026-03"
+          ]
+        },
+        "Funnel_Classification": {
+          "aliases": {},
+          "canonical": [
+            "Awareness",
+            "Consideration",
+            "Conversion",
+            "Retention/Loyalty"
+          ],
+          "sources": [
+            "history 2025-04..2026-03"
+          ]
+        },
+        "Objective_Category_Type": {
+          "aliases": {},
+          "canonical": [
+            "Awareness",
+            "Conversion",
+            "Retention"
+          ],
+          "sources": [
+            "history 2025-04..2026-03"
+          ]
+        },
+        "Product_Name": {
+          "aliases": {},
+          "canonical": [
+            "42G",
+            "Complete Balanced Nutirition",
+            "Ensure Brand",
+            "Ensure High Protein",
+            "Ensure Max Protein",
+            "Ensure Original",
+            "Ensure Plant",
+            "Ensure Plus",
+            "HMB",
+            "High Protein",
+            "Max Protein",
+            "Plant",
+            "Protein Portfolio"
+          ],
+          "sources": [
+            "history 2025-04..2026-03"
+          ]
+        },
+        "Tactic": {
+          "aliases": {},
+          "canonical": [
+            "AMC - Multi-DPV",
+            "AMC High Value",
+            "Add To Cart 30d",
+            "Auto",
+            "Auto Contextual",
+            "BHV",
+            "Brand Views 30d",
+            "Brand Views 90d",
+            "CQ",
+            "Contextual",
+            "Epsilon 1P",
+            "High Affinity Health and Grocery Audiences",
+            "IM",
+            "LS",
+            "Max Protein Keywords",
+            "Max Protein Past Purchase SnS 90d",
+            "Max Protein Product Targeting",
+            "P+ Customer Acquisition",
+            "P+ Retention",
+            "Product Purchasers 14d",
+            "Product Purchasers 180d",
+            "Product Purchasers 30d",
+            "Product Purchasers 365d",
+            "Product Purchasers 90d",
+            "Product Purchasers Overlap High Affinity Segments",
+            "Product Views",
+            "Product Views 14d",
+            "Product Views 30d",
+            "Product Views 90d",
+            "Retention",
+            "SKU",
+            "STV Retargeting"
+          ],
+          "sources": [
+            "history 2025-04..2026-03"
+          ]
+        }
+      }
+    }
+  },
+  "updated_utc": "2026-09-09T18:33:05+00:00",
+  "version": 1
+}

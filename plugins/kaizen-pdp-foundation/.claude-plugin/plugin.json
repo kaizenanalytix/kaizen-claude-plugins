@@ -1,0 +1,9 @@
+{
+  "name": "kaizen-pdp-foundation",
+  "displayName": "PDP Foundation",
+  "description": "The shared foundation every Kaizen delivery plugin builds on. Sets up a new project's standard folder structure and checklists in SharePoint/OneDrive (or brings an existing project into line), keeps file naming and organization consistent, and applies common safeguards such as approval and confirmation steps before important actions. Also serves as the reference for how a Kaizen project is structured across its phases.",
+  "version": "1.2.0",
+  "author": {
+    "name": "Kaizen Analytix LLC"
+  }
+}
