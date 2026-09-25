@@ -1,5 +1,6 @@
 # Every change needs a review from a marketplace maintainer.
-# Add per-plugin owners below as teams take ownership, e.g.:
-#   /plugins/frontend/   @kaizen-org/frontend-guild
+# Add per-vertical owners below as teams take ownership, e.g.:
+#   /plugins/operations/   /skills/operations/   @kaizen-org/operations
+#   /plugins/technical-delivery/   @kaizen-org/engineering
 
 *   @rohituddagiri-kaizenglobal

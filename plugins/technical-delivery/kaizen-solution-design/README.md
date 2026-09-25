@@ -23,10 +23,10 @@ diagram set, and packaging it all for the build team.
 
 `business-requirements` → `technical-design` → `data-model` → diagrams → `design-handoff`
 
-The handoff package is designed to be consumed by the [full-stack engineering plugins](../../docs/full-stack-guide.md).
+The handoff package is designed to be consumed by the [full-stack engineering plugins](../../../docs/full-stack-guide.md).
 
 ## How it fits the Kaizen PDP
 
 Follows the guardrails and file conventions defined in
-[`kaizen-pdp-foundation`](../kaizen-pdp-foundation/README.md) and writes into the phase folders it
+[`kaizen-pdp-foundation`](../../operations/kaizen-pdp-foundation/README.md) and writes into the phase folders it
 creates. Install both.

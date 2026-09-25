@@ -11,16 +11,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Repo consistency checks
+        if: github.event_name != 'pull_request'
         run: node scripts/validate.mjs
+      - name: Repo consistency checks + version bumps
+        if: github.event_name == 'pull_request'
+        run: node scripts/validate.mjs --base origin/${{ github.base_ref }}
       - name: Claude Code manifest validation
         run: |
           npm install -g @anthropic-ai/claude-code
           claude plugin validate .
-          for dir in plugins/*/; do
+          for dir in plugins/*/*/; do
             claude plugin validate "$dir"
           done
 
@@ -29,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: plugins/kvantum-data-prep
+        working-directory: plugins/technical-delivery/kvantum-data-prep
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

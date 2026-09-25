@@ -2,11 +2,11 @@
 
 [![Validate marketplace](https://github.com/rohituddagiri-kaizenglobal/kaizen-claude-plugins/actions/workflows/validate.yml/badge.svg)](https://github.com/rohituddagiri-kaizenglobal/kaizen-claude-plugins/actions/workflows/validate.yml)
 
-The Kaizen Analytix plugin marketplace for **Claude Code** and **Claude Cowork**. The plugins
-teach Claude how Kaizen works: the Project Delivery Process (PDP) from sales handoff to closeout,
-our full-stack engineering conventions, and client-specific data tooling.
+The Kaizen Analytix marketplace for **Claude Code** and **Claude Cowork**: the one place where
+Kaizen's plugins, standalone skills and MCP connectors are published and maintained. Everything
+is organized by company vertical.
 
-**Marketplace name:** `kaizen-plugins` · **15 plugins** · **Owner:** Kaizen Analytix LLC
+**Marketplace name:** `kaizen-plugins` · **Owner:** Kaizen Analytix LLC
 
 ---
 
@@ -21,7 +21,7 @@ In Claude Code, add the marketplace once:
 Then browse and install from the `/plugin` menu, or install directly:
 
 ```
-/plugin install kaizen-pdp-foundation@kaizen-plugins
+/plugin install general-productivity-skills@kaizen-plugins
 ```
 
 Restart Claude Code after installing. Skills trigger automatically when what you ask matches
@@ -33,43 +33,57 @@ their description; you can also call one explicitly, e.g. `/kaizen-solution-desi
 
 ---
 
-## Plugins
+## What's available
 
-### Delivery — the Kaizen PDP lifecycle
+Three kinds of things are published here. All of them install the same way, with
+`/plugin install <name>@kaizen-plugins`:
+
+- **Plugins** (`plugins/<vertical>/`): a bundle of related skills, and sometimes hooks or MCP
+  connectors, that work together.
+- **Skill packs** (`skills/<vertical>/`): standalone skills that don't belong to a plugin. Each
+  vertical's skills are published together as one `<vertical>-skills` pack.
+- **Connectors**: MCP servers, published as small plugins whose main content is a `.mcp.json`.
+
+### General productivity
+
+| Name | Type | What it does |
+|---|---|---|
+| `general-productivity-skills` | Skill pack | `kaizen-pptx-template`: decks built on the Kaizen 2026 branded template · `meeting-brief`: daily/weekly meeting briefs and a rolling action tracker from Teams transcripts |
+
+### Operations: the Kaizen PDP lifecycle
 
 Install `kaizen-pdp-foundation` first; the other PDP plugins build on its folder structure and
 guardrails.
 
 | Plugin | Phase | What it does |
 |---|---|---|
-| [kaizen-pdp-foundation](plugins/kaizen-pdp-foundation) | All | Project onboarding (standard folders, checklists, report card), guardrails, file conventions, the PDP phase reference |
-| [kaizen-sales-handoff](plugins/kaizen-sales-handoff) | 0 – 1 | KT brief, kickoff deck and project plan, initial backlog pushed to Jira, RAID log and RACI chart |
-| [kaizen-solution-design](plugins/kaizen-solution-design) | Analyze & Design | BRD, technical design, data models, E2E / data-flow / sequence / architecture diagrams, design handoff |
-| [kaizen-project-governance](plugins/kaizen-project-governance) | Governance | Status reports from the plan and Jira, governance scorecard |
-| [kaizen-project-delivery](plugins/kaizen-project-delivery) | Build | Sprint and monthly review summaries from Jira |
-| [kaizen-project-closeout](plugins/kaizen-project-closeout) | Closure | Support plan, client sign-off, case study, lessons learned, archive |
+| [kaizen-pdp-foundation](plugins/operations/kaizen-pdp-foundation) | All | Project onboarding (standard folders, checklists, report card), guardrails, file conventions, the PDP phase reference |
+| [kaizen-sales-handoff](plugins/operations/kaizen-sales-handoff) | 0 – 1 | KT brief, kickoff deck and project plan, initial backlog pushed to Jira, RAID log and RACI chart |
+| [kaizen-project-governance](plugins/operations/kaizen-project-governance) | Governance | Status reports from the plan and Jira, governance scorecard |
+| [kaizen-project-delivery](plugins/operations/kaizen-project-delivery) | Build | Sprint and monthly review summaries from Jira |
+| [kaizen-project-closeout](plugins/operations/kaizen-project-closeout) | Closure | Support plan, client sign-off, case study, lessons learned, archive |
 
-### Engineering — full-stack conventions
+### Technical delivery
 
-A suite that works together; see the [full-stack guide](docs/full-stack-guide.md) for how the
-pieces connect.
-
-| Plugin | What it does |
-|---|---|
-| [architecture-foundations](plugins/architecture-foundations) | Stack-agnostic architecture principles, greenfield kickoff, adopt-vs-defer for existing codebases (ships hooks) |
-| [codebase-map](plugins/codebase-map) | Cached, git-checkpointed map of the codebase so skills orient without re-reading it (ships hooks) |
-| [design-system](plugins/design-system) | Typography scale, design tokens, breakpoints, Tailwind adapter |
-| [frontend](plugins/frontend) | React (Vite, React Router, RTK Query, shadcn/ui, Vitest), plus Vue and Angular adapters |
-| [backend](plugins/backend) | Clean-architecture FastAPI, plus Node.js, NestJS, Django and Spring adapters |
-| [api-contract](plugins/api-contract) | OpenAPI as the single source of truth, typed DTOs for both sides |
-| [e2e-testing](plugins/e2e-testing) | Cross-stack Playwright tests from UI to database |
-| [deployment](plugins/deployment) | Deployment shape, Dockerfiles, CI/CD, environments, secrets, rollback |
-
-### Data
+Solution design, the full-stack engineering suite (see the
+[full-stack guide](docs/full-stack-guide.md) for how its pieces connect), and client data tooling.
 
 | Plugin | What it does |
 |---|---|
-| [kvantum-data-prep](plugins/kvantum-data-prep) | Kvantum Element X pre-load prep: intake, reconciliation, validation gate, template fill, input-review dashboard |
+| [kaizen-solution-design](plugins/technical-delivery/kaizen-solution-design) | BRD, technical design, data models, E2E / data-flow / sequence / architecture diagrams, design handoff |
+| [architecture-foundations](plugins/technical-delivery/architecture-foundations) | Stack-agnostic architecture principles, greenfield kickoff, adopt-vs-defer for existing codebases (ships hooks) |
+| [codebase-map](plugins/technical-delivery/codebase-map) | Cached, git-checkpointed map of the codebase so skills orient without re-reading it (ships hooks) |
+| [design-system](plugins/technical-delivery/design-system) | Typography scale, design tokens, breakpoints, Tailwind adapter |
+| [frontend](plugins/technical-delivery/frontend) | React (Vite, React Router, RTK Query, shadcn/ui, Vitest), plus Vue and Angular adapters |
+| [backend](plugins/technical-delivery/backend) | Clean-architecture FastAPI, plus Node.js, NestJS, Django and Spring adapters |
+| [api-contract](plugins/technical-delivery/api-contract) | OpenAPI as the single source of truth, typed DTOs for both sides |
+| [e2e-testing](plugins/technical-delivery/e2e-testing) | Cross-stack Playwright tests from UI to database |
+| [deployment](plugins/technical-delivery/deployment) | Deployment shape, Dockerfiles, CI/CD, environments, secrets, rollback |
+| [kvantum-data-prep](plugins/technical-delivery/kvantum-data-prep) | Kvantum Element X pre-load prep: intake, reconciliation, validation gate, template fill, input-review dashboard |
+
+### Sales & marketing
+
+Nothing published yet. See [CONTRIBUTING.md](CONTRIBUTING.md) to add the first one.
 
 ---
 
@@ -110,21 +124,25 @@ organization's Claude settings so the plugins appear for Cowork users.
 /plugin marketplace update kaizen-plugins
 ```
 
-Plugins only update when their `version` is bumped, so every change here ships with a version
-bump. Each plugin's version is in its `.claude-plugin/plugin.json`.
+Something only updates for users when its version is bumped: in `plugin.json` for a plugin, or
+in `marketplace.json` for a skill pack. CI blocks a pull request that changes either without a
+bump.
 
 ## Repository layout
 
 ```
-.claude-plugin/marketplace.json   the catalog of all plugins
-plugins/                          one folder per plugin
-docs/                             cross-plugin guides
-templates/                        settings files to copy into project repos
-scripts/validate.mjs              consistency checks run in CI
-.github/                          CI workflow, PR template, code owners
+.claude-plugin/marketplace.json     the catalog, generated/checked by scripts/validate.mjs
+plugins/<vertical>/<plugin>/        full plugins (skills, hooks, MCP connectors)
+skills/<vertical>/<skill>/          standalone skills, published as "<vertical>-skills"
+docs/                               cross-plugin guides
+templates/                          settings files to copy into project repos
+scripts/validate.mjs                catalog sync + consistency checks (runs in CI)
+.github/                            CI workflow, PR template, code owners
 ```
+
+Verticals: `general-productivity`, `operations`, `sales-marketing`, `technical-delivery`.
 
 ## Contributing
 
-New plugins and fixes are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the conventions
-and how to test a plugin locally before opening a PR.
+New plugins, skills and connectors are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the
+conventions and how to test locally before opening a PR.
