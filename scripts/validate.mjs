@@ -230,7 +230,10 @@ if (BASE) {
   for (const [name, { vertical, manifest }] of onDisk) {
     const prefix = `plugins/${vertical}/${name}/`;
     if (!changed.some((f) => f.startsWith(prefix))) continue;
-    const before = showAtBase(`${prefix}.claude-plugin/plugin.json`);
+    // Look the plugin up where the base catalog had it, so a plugin that
+    // moved vertical in this change is still compared with its old version.
+    const baseSource = baseMarketplace?.plugins?.find((p) => p.name === name)?.source?.replace(/^\.\//, "");
+    const before = showAtBase(`${baseSource ?? prefix.slice(0, -1)}/.claude-plugin/plugin.json`);
     if (before && before.version === manifest?.version) {
       errors.push(`${prefix}: changed but version is still ${before.version} — bump it in plugin.json`);
     }
