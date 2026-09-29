@@ -192,6 +192,23 @@
       ]
     },
     {
+      "name": "kaizen-data-science",
+      "source": "./plugins/technical-delivery/kaizen-data-science",
+      "description": "Data science on demand: exploration and quality checks, statistical analysis, modeling (predictive, forecasting, Bayesian, optimization), matplotlib/seaborn charts, and export to a reproducible Jupyter notebook in the Kaizen project structure.",
+      "category": "technical-delivery",
+      "keywords": [
+        "data-science",
+        "eda",
+        "statistics",
+        "machine-learning",
+        "forecasting",
+        "bayesian",
+        "optimization",
+        "visualization",
+        "jupyter"
+      ]
+    },
+    {
       "name": "kvantum-data-prep",
       "source": "./plugins/technical-delivery/kvantum-data-prep",
       "description": "Kvantum Element X pre-load prep: raw client extracts plus template in, validated load-ready file and an input-review dashboard out.",
@@ -211,7 +228,14 @@
       "version": "1.0.0",
       "description": "Everyday Kaizen skills: branded PowerPoint decks from the Kaizen 2026 template, and daily/weekly meeting briefs with a rolling action tracker from Teams transcripts.",
       "category": "general-productivity",
-      "keywords": ["pptx", "slides", "kaizen-template", "meeting-brief", "action-tracker", "teams"],
+      "keywords": [
+        "pptx",
+        "slides",
+        "kaizen-template",
+        "meeting-brief",
+        "action-tracker",
+        "teams"
+      ],
       "skills": [
         "./kaizen-pptx-template",
         "./meeting-brief"

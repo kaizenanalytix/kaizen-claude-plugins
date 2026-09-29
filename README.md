@@ -66,7 +66,8 @@ guardrails.
 ### Technical delivery
 
 Solution design, the full-stack engineering suite (see the
-[full-stack guide](docs/full-stack-guide.md) for how its pieces connect), and client data tooling.
+[full-stack guide](docs/full-stack-guide.md) for how its pieces connect), data science, and
+client data tooling.
 
 | Plugin | What it does |
 |---|---|
@@ -79,6 +80,7 @@ Solution design, the full-stack engineering suite (see the
 | [api-contract](plugins/technical-delivery/api-contract) | OpenAPI as the single source of truth, typed DTOs for both sides |
 | [e2e-testing](plugins/technical-delivery/e2e-testing) | Cross-stack Playwright tests from UI to database |
 | [deployment](plugins/technical-delivery/deployment) | Deployment shape, Dockerfiles, CI/CD, environments, secrets, rollback |
+| [kaizen-data-science](plugins/technical-delivery/kaizen-data-science) | Data exploration, statistics, modeling (predictive, forecasting, Bayesian, optimization), charts, and export to a reproducible Jupyter notebook |
 | [kvantum-data-prep](plugins/technical-delivery/kvantum-data-prep) | Kvantum Element X pre-load prep: intake, reconciliation, validation gate, template fill, input-review dashboard |
 
 ### Sales & marketing

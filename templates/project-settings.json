@@ -30,6 +30,7 @@
     "kaizen-project-governance@kaizen-plugins": false,
     "kaizen-project-delivery@kaizen-plugins": false,
     "kaizen-project-closeout@kaizen-plugins": false,
+    "kaizen-data-science@kaizen-plugins": false,
     "kvantum-data-prep@kaizen-plugins": false,
 
     "general-productivity-skills@kaizen-plugins": false
