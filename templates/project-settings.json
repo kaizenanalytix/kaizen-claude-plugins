@@ -9,7 +9,7 @@
     "kaizen-plugins": {
       "source": {
         "source": "github",
-        "repo": "rohituddagiri-kaizenglobal/kaizen-claude-plugins"
+        "repo": "kaizenanalytix/kaizen-claude-plugins"
       }
     }
   },

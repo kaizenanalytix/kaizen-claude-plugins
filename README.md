@@ -1,6 +1,6 @@
 # Kaizen Claude Plugins
 
-[![Validate marketplace](https://github.com/rohituddagiri-kaizenglobal/kaizen-claude-plugins/actions/workflows/validate.yml/badge.svg)](https://github.com/rohituddagiri-kaizenglobal/kaizen-claude-plugins/actions/workflows/validate.yml)
+[![Validate marketplace](https://github.com/kaizenanalytix/kaizen-claude-plugins/actions/workflows/validate.yml/badge.svg)](https://github.com/kaizenanalytix/kaizen-claude-plugins/actions/workflows/validate.yml)
 
 The Kaizen Analytix marketplace for **Claude Code** and **Claude Cowork**: the one place where
 Kaizen's plugins, standalone skills and MCP connectors are published and maintained. Everything
@@ -15,7 +15,7 @@ is organized by company vertical.
 In Claude Code, add the marketplace once:
 
 ```
-/plugin marketplace add rohituddagiri-kaizenglobal/kaizen-claude-plugins
+/plugin marketplace add kaizenanalytix/kaizen-claude-plugins
 ```
 
 Then browse and install from the `/plugin` menu, or install directly:
@@ -97,7 +97,7 @@ project repo that registers the marketplace and enables what that repo needs. St
 {
   "extraKnownMarketplaces": {
     "kaizen-plugins": {
-      "source": { "source": "github", "repo": "rohituddagiri-kaizenglobal/kaizen-claude-plugins" }
+      "source": { "source": "github", "repo": "kaizenanalytix/kaizen-claude-plugins" }
     }
   },
   "enabledPlugins": {

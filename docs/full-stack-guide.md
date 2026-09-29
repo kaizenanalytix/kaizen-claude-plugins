@@ -68,7 +68,7 @@ code.
 {
   "extraKnownMarketplaces": {
     "kaizen-plugins": {
-      "source": { "source": "github", "repo": "rohituddagiri-kaizenglobal/kaizen-claude-plugins" }
+      "source": { "source": "github", "repo": "kaizenanalytix/kaizen-claude-plugins" }
     }
   },
   "enabledPlugins": {
