@@ -24,7 +24,7 @@ Three concepts, not to be confused:
 
 | Term | What it is |
 |---|---|
-| **Plugin** | A folder under `plugins/` in this repo (`plugins/frontend/`, `plugins/backend/`, ...). The unit you enable/disable in a project's settings. Bundles a `plugin.json`, a `README.md`, and one or more skills. |
+| **Plugin** | A folder under `plugins/technical-delivery/` in this repo (`frontend/`, `backend/`, ...). The unit you enable/disable in a project's settings. Bundles a `plugin.json`, a `README.md`, and one or more skills. |
 | **Skill** | A single `SKILL.md` file inside a plugin's `skills/` folder. The actual unit of behavior — a focused set of instructions Claude follows for one kind of task (e.g. "write React tests," "scaffold a FastAPI module"). |
 | **Marketplace** | This whole repo, registered once via `.claude-plugin/marketplace.json`, listing every plugin available to install. |
 
@@ -68,7 +68,7 @@ code.
 {
   "extraKnownMarketplaces": {
     "kaizen-plugins": {
-      "source": { "source": "github", "repo": "rohituddagiri-kaizenglobal/kaizen-claude-plugins" }
+      "source": { "source": "github", "repo": "kaizenanalytix/kaizen-claude-plugins" }
     }
   },
   "enabledPlugins": {

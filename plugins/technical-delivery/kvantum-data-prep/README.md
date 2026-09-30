@@ -35,6 +35,6 @@ Python 3 with `pandas`, `numpy`, `openpyxl` and `pyyaml` available to the sessio
 ## Development
 
 ```bash
-cd plugins/kvantum-data-prep
+cd plugins/technical-delivery/kvantum-data-prep
 python -m pytest tests
 ```

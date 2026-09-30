@@ -9,7 +9,7 @@
     "kaizen-plugins": {
       "source": {
         "source": "github",
-        "repo": "rohituddagiri-kaizenglobal/kaizen-claude-plugins"
+        "repo": "kaizenanalytix/kaizen-claude-plugins"
       }
     }
   },
@@ -30,7 +30,9 @@
     "kaizen-project-governance@kaizen-plugins": false,
     "kaizen-project-delivery@kaizen-plugins": false,
     "kaizen-project-closeout@kaizen-plugins": false,
-    "kvantum-data-prep@kaizen-plugins": false
+    "kvantum-data-prep@kaizen-plugins": false,
+
+    "general-productivity-skills@kaizen-plugins": false
   },
 
   "_comment_4_permissions": "The codebase-map cache lives at ~/.claude/kaizen/, outside the repo, so without these it prompts for approval every session. Paths use '~/' deliberately — it resolves per-user, so this works unchanged on every machine and OS. Never replace it with an absolute path like C:/Users/<name>/, which grants nothing on anyone else's machine.",
