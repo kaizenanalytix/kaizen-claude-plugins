@@ -1,0 +1,22 @@
+{
+  "name": "kaizen-data-science",
+  "version": "2.9.4",
+  "description": "A modular suite of data-analysis skills that trigger on demand: data exploration & quality, statistical analysis, modeling (predictive/forecasting/Bayesian/optimization), code-generated visualization, and project export (reproducible Jupyter notebook in the mandatory Kaizen project structure). Each skill is self-contained and engages based on the task.",
+  "author": {
+    "name": "Kaizen Analytix LLC"
+  },
+  "keywords": [
+    "data analysis",
+    "eda",
+    "statistics",
+    "machine learning",
+    "forecasting",
+    "bayesian",
+    "optimization",
+    "jupyter notebook",
+    "reproducibility",
+    "visualization",
+    "matplotlib",
+    "eda charts"
+  ]
+}
