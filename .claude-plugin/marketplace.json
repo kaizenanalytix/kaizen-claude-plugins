@@ -102,6 +102,19 @@
       ]
     },
     {
+      "name": "guardrails",
+      "source": "./plugins/technical-delivery/guardrails",
+      "description": "The authority layer for technical delivery: previews before destructive or database-writing commands (Bash and PowerShell), a hard scope gate on database file edits only, and a standing block on git commit/push/PR — the agent drafts commit messages and PR descriptions as text, with no AI attribution. Ships SessionStart, UserPromptSubmit, PreToolUse and PostToolUse hooks.",
+      "category": "technical-delivery",
+      "keywords": [
+        "guardrails",
+        "database",
+        "preview",
+        "git",
+        "hooks"
+      ]
+    },
+    {
       "name": "codebase-map",
       "source": "./plugins/technical-delivery/codebase-map",
       "description": "Per-machine cache of codebase structure facts, refreshed on a git-SHA checkpoint, so skills can orient without re-reading the repo every session.",
