@@ -16,7 +16,7 @@ does the agent have while doing it*.
 | `permission-preview` | **The P and D families in practice.** The six-field preview block, the read-only probe table (what to run before a write, per database client), resolving what a connection string actually points at, the three reversibility verdicts, and the field nothing else in the toolchain provides — what a standing "always allow" would authorise for the rest of the session, versus a one-time yes. Ships six complete worked examples. |
 | `failure-triage` | **The V family.** What to do when a test, build, or command fails: quote the real output, sort it into test-was-wrong / real-defect / genuinely-ambiguous, present the hypothesis report *as a hypothesis*, and ask before changing code. Plus the two-attempt cap and the list of ways to force a test green that are never available. Stack- and tooling-agnostic — the general form of a rule a sibling `e2e-testing` plugin applies to Playwright runs. |
 | `question-protocol` | **The C family.** How to ask: batched multiple-choice with consequences and a recommendation, understanding restated first, defaults stated out loud when taken, ambiguity re-asked rather than resolved. Includes what does *not* deserve a question, so the asking stays calibrated, and what "stop asking me" actually means. |
-| `subtask-orchestration` | **The O family.** A lead that owns a dependency **graph**, specialist agents each handed only their predecessors' handover packets, an independent reviewer per node, and bounded retry loops — built on the Workflow tool, where `schema` enforces the packet and `isolation: 'worktree'` stops concurrent implementers corrupting each other. Decompose into subtasks small enough for one context, checkpoint the plan, dispatch with acceptance criteria declared up front, verify results against those criteria rather than against how the summary reads, memoise verified subtasks to `~/.claude/kaizen/<project>/orchestration/` so a retry reuses finished work, and ask before spending another agent. The generalised form of the sub-agent pattern `project-kickoff` uses. |
+| `subtask-orchestration` | **The O family.** A lead that owns a dependency **graph**, specialist agents each handed only their predecessors' handover packets, an independent reviewer per node, and bounded retry loops — built on the Workflow tool, where `schema` enforces the packet and `isolation: 'worktree'` stops concurrent implementers corrupting each other. Decompose into subtasks small enough for one context, checkpoint the plan, dispatch with acceptance criteria declared up front, verify results against those criteria rather than against how the summary reads, memoise verified subtasks to `~/.claude/kaizen/<project-key>/orchestration/` so a retry reuses finished work, and ask before spending another agent. The generalised form of the sub-agent pattern `project-kickoff` uses. |
 
 ## Setup
 
@@ -211,7 +211,10 @@ probe claim.
 
 1. **`KZ_GUARDRAILS=off`** — per-machine or CI. Required for headless `claude -p`, where a
    deny-loop is unrecoverable because no human can answer.
-2. **`.kaizen/guardrails.json`** — per-project, committed:
+2. **`~/.claude/kaizen/<project-key>/guardrails.json`** — per user and per checkout, never
+   inside the repo. `<project-key>` is the folder name plus a short hash of the repo path;
+   `node scripts/lib/project-key.js` prints the folder. A legacy `<repo>/.kaizen/guardrails.json`
+   is still read when the user-level file doesn't exist:
    ```json
    {
      "enabled": true,

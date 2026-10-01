@@ -3,7 +3,7 @@ name: codebase-map-sync
 description: >
   Maintains a per-machine cache of codebase structure facts and a
   one-line-per-file/per-folder description tree
-  (~/.claude/kaizen/<project-name>/codebase-map.json) — stack,
+  (~/.claude/kaizen/<project-key>/codebase-map.json) — stack,
   module/route layout, naming conventions, and a navigable file tree with
   purpose notes — refreshed via a git-SHA checkpoint so callers get
   current facts without re-reading the whole codebase every session. Use
@@ -28,8 +28,13 @@ This skill is discipline-agnostic on purpose: it doesn't care whether the
 caller is `frontend-architecture`, `backend-architecture`, both, or neither.
 
 The cache lives in a unified per-machine root, not inside the project
-itself: `~/.claude/kaizen/<project-name>/codebase-map.json`, where
-`<project-name>` is the project's own folder name. This mirrors where this
+itself: `~/.claude/kaizen/<project-key>/codebase-map.json`, where
+`<project-key>` is the repo's folder name plus a short hash of its absolute
+path (e.g. `ka-optistream-frontend-a1a0f0`), so two checkouts that share a
+folder name get separate maps. The SessionStart hook prints the exact path;
+write to that one. A map found under the bare folder name
+(`~/.claude/kaizen/<folder-name>/`) is the legacy location: it is read once
+as a starting point, and the next write goes to the keyed path. This mirrors where this
 library's skills themselves live (`~/.claude/skills/`) — reachable by Claude
 regardless of which project folder is currently open, without needing every
 project to share a common parent directory. All git commands below
@@ -40,7 +45,7 @@ each other — each developer gets their own.
 
 ## 1. Confirm the artifact exists, bootstrap if not
 
-Check for `~/.claude/kaizen/<project-name>/codebase-map.json`. If it's
+Check for `~/.claude/kaizen/<project-key>/codebase-map.json`. If it's
 missing, this is first adoption:
 
 - Ask the user directly for permission before reading anything: "There's no
@@ -66,7 +71,7 @@ missing, this is first adoption:
     look at that file — skim for exports, top-level function/component
     names, and any header comment; never fabricate a description from the
     filename alone.
-- Create `~/.claude/kaizen/<project-name>/` if it doesn't exist yet, then
+- Create `~/.claude/kaizen/<project-key>/` if it doesn't exist yet, then
   write `codebase-map.json` there with `last_scanned_sha` set to the current
   `HEAD` of the project's own repo (see the schema in step 4).
 - If the scan turns up frontend or backend code that predates this library's
@@ -248,7 +253,7 @@ entries rather than flattening deep paths into one key.
 - Never write new code by inferring its shape from a one-line description
   alone — descriptions are for choosing which single file is worth reading,
   never a substitute for reading it.
-- This file lives under `~/.claude/kaizen/<project-name>/`, never inside the
+- This file lives under `~/.claude/kaizen/<project-key>/`, never inside the
   project's own directory. It is a per-machine cache, not a team-shared
   artifact.
 - This skill owns facts only. It never asks the user to choose between

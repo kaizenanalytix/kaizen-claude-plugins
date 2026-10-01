@@ -42,7 +42,18 @@ step 3 rather than deciding from that fact alone.
 
 ## 1. Check for an existing decision first
 
-Look for `.kaizen/adoption.json` at the project root. If it has an entry for
+The decision is stored **per user, outside the repo**, at
+`~/.claude/kaizen/<project-key>/adoption.json`. `<project-key>` is the repo's
+folder name plus a short hash of its absolute path (e.g.
+`ka-optistream-frontend-a1a0f0`), so two checkouts with the same folder name
+never share a decision. The resolved folder is printed at session start by
+the working-agreement hook ("Per-user Kaizen state for this project: …"). Use
+that exact path; if it isn't in context, ask the user rather than guessing.
+**Never create `.kaizen/` or any other file inside the project for this.** A
+legacy `<repo>/.kaizen/adoption.json` from before this change is still read,
+but nothing new is written there.
+
+Look for that file. If it has an entry for
 the current discipline (`frontend`, `backend`, ...), read its `decision`
 field and apply it — do not ask the user again. Only continue to the steps
 below if no such entry exists yet for this discipline.
@@ -51,8 +62,8 @@ below if no such entry exists yet for this discipline.
 
 If a sibling `codebase-map` plugin is installed, invoke its
 `codebase-map-sync` skill now, regardless of which branch step 1 took — they
-write to different artifacts (`.kaizen/adoption.json` here,
-`~/.claude/kaizen/<project>/codebase-map.json` there), so there's no ordering
+write to different artifacts (`~/.claude/kaizen/<project-key>/adoption.json` here,
+`~/.claude/kaizen/<project-key>/codebase-map.json` there), so there's no ordering
 dependency between them. This is what makes this skill a reliable single
 entry point for "start working on an existing codebase": going through it
 always also leaves the project mapped, instead of the map only existing when
@@ -135,7 +146,7 @@ Then present the choice:
 This decision is consequential and expensive to unwind — undoing a
 whole-project structural choice after several files have already been
 written under it means redoing all of them. Do not write
-`.kaizen/adoption.json`, scaffold anything, or rename/restructure anything on
+`~/.claude/kaizen/<project-key>/adoption.json`, scaffold anything, or rename/restructure anything on
 an inferred or assumed answer; wait for the user's explicit reply to step 3.
 If their phrasing is ambiguous between (a) and (b), ask again rather than
 guessing.
@@ -153,7 +164,9 @@ wrong, so default effort is fine there.
 
 ## 5. Persist the decision
 
-Write (or update) `.kaizen/adoption.json` at the project root, keyed by
+Write (or update) `~/.claude/kaizen/<project-key>/adoption.json`, the per-user
+path from step 1, never a file inside the repo. Create the folder if needed. The
+file is keyed by
 discipline so multiple disciplines can each have their own entry without
 overwriting one another:
 
@@ -208,7 +221,7 @@ nor "fix it to match everything else" is yours to decide unilaterally:
    recorded decision)?
 4. Proceed only after the user answers, and apply that answer only to the
    specific file/area asked about. This is **not** a new whole-project
-   decision — don't write it to `.kaizen/adoption.json`, which is reserved
+   decision — don't write it to `~/.claude/kaizen/<project-key>/adoption.json`, which is reserved
    for the one project-wide decision above, not per-file exceptions. If the
    same category of mismatch recurs elsewhere later in the task, point out
    that it matches one already resolved and ask whether the same answer
@@ -237,7 +250,7 @@ adoption-related decision is actually in play.
 ## 9. Revisiting the decision
 
 If the user later asks to migrate toward Kaizen's conventions, update the
-`decision` field in `.kaizen/adoption.json` for that discipline and note the
+`decision` field in `~/.claude/kaizen/<project-key>/adoption.json` for that discipline and note the
 migration in `notes`. Don't start applying different rules without updating
 the marker — otherwise this skill (and every other skill checking it) will
 disagree with what's actually on disk.

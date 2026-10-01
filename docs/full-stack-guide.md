@@ -128,7 +128,7 @@ framework adapter later translates into concrete terms.
 | `test-pyramid` | Unit/integration/e2e proportions and what belongs at each layer, independent of tooling. `react-testing`, `fastapi-testing`, and `e2e-testing` are the tool-specific implementations of this. |
 | `working-agreement` | How work gets done, independent of stack. **Four rules:** finish all edits *then* ask before any build/lint (and run them together once approved); surface pre-existing problems near a change rather than silently fixing them; recommend a model tier at decision points; and never assume an implementation detail — read the repo's existing technical docs first, and ask about anything they don't pin down. Shipped as a `SessionStart` hook, not just a skill — a skill loads when its description matches, which is too late for a rule about what not to do mid-task. |
 | `project-kickoff` | **Greenfield orchestrator.** Owns the first hour of a new project: asks stack/product shape/design source as explicit options, applies the design system *before* any component exists, then the framework bootstrap, the architecture skeleton, the API contract, and seeds the `codebase-map` cache after the first commit. Two of its steps run as **background sub-agents** rather than in this conversation — see §4's note on orchestration. Deliberately writes **nothing** into the project's `.claude/` directory and creates no `CLAUDE.md` — plugin enablement is user-level config, not a scaffolding decision. |
-| `existing-codebase-adoption` | The brownfield counterpart to `project-kickoff`. Decided once per discipline per project: does a codebase that already has its own structure adopt Kaizen's conventions, or keep its own? Recorded in `.kaizen/adoption.json`, keyed per discipline, so a repo can be `frontend: kaizen` and `backend: existing` at once. Also **triggers `codebase-map-sync`** as part of its own run, so going through this decision always leaves the project mapped. **Enforced by a hook** — see the callout below. |
+| `existing-codebase-adoption` | The brownfield counterpart to `project-kickoff`. Decided once per discipline per project: does a codebase that already has its own structure adopt Kaizen's conventions, or keep its own? Recorded in `~/.claude/kaizen/<project-key>/adoption.json`, keyed per discipline, so a repo can be `frontend: kaizen` and `backend: existing` at once. Also **triggers `codebase-map-sync`** as part of its own run, so going through this decision always leaves the project mapped. **Enforced by a hook** — see the callout below. |
 
 **Trigger it with:** "structure the app," "where should this state live,"
 "what should I test," "start a new project," "this project already has a
@@ -154,13 +154,13 @@ Besides the `SessionStart` hook, this plugin ships a **`PreToolUse` hook**
 (`scripts/adoption-gate.js`, matcher `Edit|Write|NotebookEdit`) that will
 **refuse an edit** and tell you to run `existing-codebase-adoption` first. If
 you see a message like *"Editing src/foo.py touches an existing backend
-codebase (N tracked backend files, no .kaizen/adoption.json entry)"*, that's
+codebase (N tracked backend files, no ~/.claude/kaizen/<project-key>/adoption.json entry)"*, that's
 this — not a bug.
 
 It fires only when **all** of these are true: the file resolves to a discipline
 (from the nearest `package.json` / `pyproject.toml` / `pom.xml` / `manage.py`),
 the repo has real commit history, that discipline has more than ~20 tracked
-files, and `.kaizen/adoption.json` has no entry for it. It **fails open** on
+files, and `~/.claude/kaizen/<project-key>/adoption.json` has no entry for it. It **fails open** on
 anything else — no discipline resolved, no git repo, no commits yet, a small
 scaffold, a non-source file like a README, or any error in the script itself.
 So it can only ever block a genuine, non-trivial, undecided existing codebase.
@@ -342,7 +342,7 @@ re-read every session. Depends on nothing, in either direction.
 
 | Skill | Purpose |
 |---|---|
-| `codebase-map-sync` | Bootstraps (with explicit user permission before the first scan) or incrementally refreshes `~/.claude/kaizen/<project-name>/codebase-map.json`. Same-SHA → returns cache as-is, no files read. Advanced-SHA → re-describes only what changed. History rewritten → full reseed. |
+| `codebase-map-sync` | Bootstraps (with explicit user permission before the first scan) or incrementally refreshes `~/.claude/kaizen/<project-key>/codebase-map.json`. Same-SHA → returns cache as-is, no files read. Advanced-SHA → re-describes only what changed. History rewritten → full reseed. |
 
 **Trigger it with:** "map this codebase," "what's the structure here" — or
 implicitly, whenever a consulting skill (below) needs it.

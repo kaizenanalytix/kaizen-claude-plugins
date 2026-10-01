@@ -19,6 +19,12 @@ const { execFileSync } = require("child_process");
 
 const { classifyCommand, isReadOnlyProbe, isTestRunner } = require("./lib/classify");
 
+// Every hook writes per-user state under ~/.claude/kaizen/. Point home at a throwaway
+// folder so the test never touches the real one, and child processes inherit it.
+const fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), "kz-home-"));
+process.env.HOME = fakeHome;
+process.env.USERPROFILE = fakeHome;
+
 const GATE = path.join(__dirname, "preview-gate.js");
 const TRIAGE = path.join(__dirname, "failure-triage.js");
 
@@ -303,17 +309,35 @@ check("Explore agent type -> allow", runDispatch(longBrief, { subagent_type: "Ex
 check("short prompt is not a work dispatch -> allow", runDispatch("check the version"), 0);
 
 // --------------------------------------------------------------------------
-section("ESCAPE HATCHES — .kaizen/guardrails.json");
+section("ESCAPE HATCHES — ~/.claude/kaizen/<project-key>/guardrails.json");
 // --------------------------------------------------------------------------
 
-fs.mkdirSync(path.join(tmp, ".kaizen"), { recursive: true });
+const { kaizenDir, projectKey } = require("./lib/project-key");
+const userCfgDir = kaizenDir(tmp);
+fs.mkdirSync(userCfgDir, { recursive: true });
 const noPreview = jsonl([...filler(8), realUser]);
 
-function withConfig(cfg, fn) {
-  const p = path.join(tmp, ".kaizen", "guardrails.json");
+function withConfig(cfg, fn, dir) {
+  const d = dir || userCfgDir;
+  fs.mkdirSync(d, { recursive: true });
+  const p = path.join(d, "guardrails.json");
   fs.writeFileSync(p, JSON.stringify(cfg), "utf8");
   try { return fn(); } finally { fs.unlinkSync(p); }
 }
+
+check("config lives under the (fake) home, not the repo",
+  userCfgDir.startsWith(fakeHome) && !userCfgDir.startsWith(tmp), true);
+check("legacy <repo>/.kaizen/guardrails.json is still honoured",
+  withConfig({ enabled: false }, () => runGate(noPreview), path.join(tmp, ".kaizen")), 0);
+check("user-level file wins over a legacy repo file",
+  (() => {
+    const legacy = path.join(tmp, ".kaizen");
+    fs.mkdirSync(legacy, { recursive: true });
+    fs.writeFileSync(path.join(legacy, "guardrails.json"), JSON.stringify({ enabled: false }), "utf8");
+    try {
+      return withConfig({ enabled: true }, () => runGate(noPreview));
+    } finally { fs.unlinkSync(path.join(legacy, "guardrails.json")); }
+  })(), 2);
 
 check("allow_patterns whitelists a wrapper script",
   withConfig({ allow_patterns: ["^psql -c \"DELETE"] }, () => runGate(noPreview)), 0);
@@ -325,10 +349,36 @@ check("muted_until in the past does NOT turn it off",
   withConfig({ muted_until: "2020-01-01T00:00:00Z" }, () => runGate(noPreview)), 2);
 check("corrupt config fails open to enforcing",
   (() => {
-    const p = path.join(tmp, ".kaizen", "guardrails.json");
+    const p = path.join(userCfgDir, "guardrails.json");
     fs.writeFileSync(p, "{ not json", "utf8");
     try { return runGate(noPreview); } finally { fs.unlinkSync(p); }
   })(), 2);
+
+// --------------------------------------------------------------------------
+section("PROJECT KEY — one per checkout, shared by three plugins");
+// --------------------------------------------------------------------------
+
+const keyA = path.join(tmp, "a", "frontend");
+const keyB = path.join(tmp, "b", "frontend");
+fs.mkdirSync(path.join(keyA, ".git"), { recursive: true });
+fs.mkdirSync(path.join(keyB, "src"), { recursive: true });
+fs.mkdirSync(path.join(keyB, ".git"), { recursive: true });
+check("two checkouts with the same folder name get different keys",
+  projectKey(keyA) !== projectKey(keyB), true);
+check("key keeps the folder name readable", /^frontend-[0-9a-f]{6}$/.test(projectKey(keyA)), true);
+check("a subfolder resolves to its repo's key",
+  projectKey(path.join(keyB, "src")) === projectKey(keyB), true);
+
+// Each plugin carries its own copy so it can be installed alone. If they drift,
+// the three plugins silently look in different folders for the same project.
+const TD = path.resolve(__dirname, "..", "..");
+["architecture-foundations", "codebase-map"].forEach((p) => {
+  const sib = path.join(TD, p, "scripts", "lib", "project-key.js");
+  if (!fs.existsSync(sib)) return; // installed standalone — nothing to compare
+  check(`project-key.js identical in ${p}`,
+    fs.readFileSync(sib, "utf8") === fs.readFileSync(path.join(__dirname, "lib", "project-key.js"), "utf8"),
+    true);
+});
 
 // --------------------------------------------------------------------------
 section("POSTTOOLUSE — failure triage fires only on a real runner failure");
@@ -571,6 +621,7 @@ check("scope-first stays under ~300 tokens",
 
 // --------------------------------------------------------------------------
 try { fs.rmSync(tmp, { recursive: true, force: true }); } catch {}
+try { fs.rmSync(fakeHome, { recursive: true, force: true }); } catch {}
 
 console.log(`\n${"=".repeat(60)}`);
 if (failures.length) {

@@ -6,7 +6,11 @@
 //   1. KZ_GUARDRAILS=off            per-machine / CI. Required for headless
 //                                   `claude -p` runs, where a deny-loop is
 //                                   unrecoverable because no human can answer.
-//   2. .kaizen/guardrails.json      per-project, committed:
+//   2. ~/.claude/kaizen/<project-key>/guardrails.json
+//                                   per-user, per-checkout (see project-key.js),
+//                                   never inside the repo. A legacy
+//                                   <repo>/.kaizen/guardrails.json is still read
+//                                   when the user-level file doesn't exist:
 //                                     enabled        false turns everything off
 //                                     muted_until    ISO timestamp, temporary
 //                                     allow_patterns regexes that always pass
@@ -28,6 +32,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { kaizenDir, findFile } = require("./project-key");
 
 function isDisabledByEnv() {
   const v = (process.env.KZ_GUARDRAILS || "").trim().toLowerCase();
@@ -35,12 +40,13 @@ function isDisabledByEnv() {
 }
 
 function loadConfig(projectRoot) {
-  const empty = { enabled: true, muted_until: null, allow_patterns: [], extra_patterns: [] };
+  const empty = { enabled: true, muted_until: null, allow_patterns: [], extra_patterns: [], source: null };
   try {
-    const p = path.join(projectRoot, ".kaizen", "guardrails.json");
-    if (!fs.existsSync(p)) return empty;
+    const p = findFile(projectRoot, "guardrails.json");
+    if (!p) return empty;
     const cfg = JSON.parse(fs.readFileSync(p, "utf8"));
     return {
+      source: p,
       enabled: cfg.enabled !== false,
       muted_until: typeof cfg.muted_until === "string" ? cfg.muted_until : null,
       allow_patterns: Array.isArray(cfg.allow_patterns) ? cfg.allow_patterns : [],
@@ -54,7 +60,7 @@ function loadConfig(projectRoot) {
 // Returns a reason string when the guardrails are currently off, else null.
 function mutedReason(cfg) {
   if (isDisabledByEnv()) return "KZ_GUARDRAILS=off";
-  if (!cfg.enabled) return ".kaizen/guardrails.json has enabled:false";
+  if (!cfg.enabled) return `${cfg.source || "guardrails.json"} has enabled:false`;
   if (cfg.muted_until) {
     const until = Date.parse(cfg.muted_until);
     if (!Number.isNaN(until) && Date.now() < until) {
@@ -79,9 +85,7 @@ function matchesAny(patterns, cmd) {
 // state outside the repo. Used for the retry counter only, where a wrong count
 // changes one sentence of wording and nothing else.
 function stateDir(projectRoot) {
-  const home = process.env.HOME || process.env.USERPROFILE || "";
-  const name = path.basename(path.resolve(projectRoot)) || "unknown";
-  return path.join(home, ".claude", "kaizen", name, "guardrails");
+  return path.join(kaizenDir(projectRoot), "guardrails");
 }
 
 function readState(projectRoot, file) {
