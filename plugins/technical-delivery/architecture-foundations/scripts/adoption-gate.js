@@ -12,6 +12,7 @@
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
+const { kaizenDir, legacyPaths } = require("./lib/project-key");
 
 function allow() {
   process.exit(0);
@@ -123,10 +124,15 @@ try {
   if (!classified) allow();
   const { discipline, scopeDir } = classified;
 
-  const adoptionPath = path.join(projectRoot, ".kaizen", "adoption.json");
-  if (fs.existsSync(adoptionPath)) {
+  // The decision lives per-user at ~/.claude/kaizen/<project-key>/adoption.json, never
+  // in the repo. The legacy locations (<repo>/.kaizen/, and the bare-folder-name user
+  // dir) are still honoured so a project that already decided isn't asked again.
+  const adoptionPath = path.join(kaizenDir(projectRoot), "adoption.json");
+  const candidates = [adoptionPath].concat(legacyPaths(projectRoot, "adoption.json"));
+  for (const p of candidates) {
+    if (!fs.existsSync(p)) continue;
     try {
-      const adoption = JSON.parse(fs.readFileSync(adoptionPath, "utf8"));
+      const adoption = JSON.parse(fs.readFileSync(p, "utf8"));
       if (adoption[discipline] && adoption[discipline].decision) allow();
     } catch {
       allow(); // corrupt adoption.json isn't this hook's problem to fix
@@ -145,9 +151,10 @@ try {
 
   block(
     `Editing ${path.relative(projectRoot, file)} touches an existing ${discipline} codebase ` +
-      `(${trackedCount} tracked ${discipline} files, no .kaizen/adoption.json entry for "${discipline}"). ` +
+      `(${trackedCount} tracked ${discipline} files, no "${discipline}" entry in ${adoptionPath}). ` +
       `Run the architecture-foundations plugin's existing-codebase-adoption skill first — it also ` +
-      `triggers codebase-map-sync — then retry this edit.`
+      `triggers codebase-map-sync — and record the decision in that file (user-level, NOT inside ` +
+      `the repo), then retry this edit.`
   );
 } catch {
   allow();

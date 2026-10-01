@@ -1,6 +1,6 @@
 {
   "name": "architecture-foundations",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Framework- and stack-agnostic architecture principles (clean architecture zones, a UI-specific architecture layer, state philosophy, test pyramid) that a sibling frontend and backend plugin both build on, plus the two project-entry decisions: a greenfield kickoff orchestrator that sequences the start of a new build (design system before the first component — delegated to a background sub-agent once its inputs are known, keeping this plugin's own context light — then bootstrap, architecture, contract, and seeding the codebase map — writing nothing into the project's own .claude/ directory, since plugin enablement is user-level config), and a decision on whether a discipline adopts this suite's conventions or defers to a project's pre-existing structure, which also triggers a sibling codebase-map plugin's scan so the decision and the map are seeded together. Also ships a SessionStart hook carrying a stack-independent working agreement — verification is batched and asked for rather than run continuously, pre-existing problems are surfaced rather than silently fixed, no detail is assumed without checking docs or asking — plus a PreToolUse hook that blocks edits to a non-trivial existing codebase until that adoption decision exists for the touched discipline. No library-specific code.",
   "author": {
     "name": "Kaizen Analytix"

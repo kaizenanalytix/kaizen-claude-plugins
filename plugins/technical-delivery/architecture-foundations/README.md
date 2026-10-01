@@ -44,7 +44,7 @@ Everything else in this plugin is pure conceptual knowledge with no scripts.
 `Write`, or `NotebookEdit`, it resolves the touched file's discipline (frontend
 vs. backend, via nearby manifests — `package.json`, `pyproject.toml`, `pom.xml`,
 etc.), and blocks with a one-line message if that discipline has no
-`.kaizen/adoption.json` entry yet, the project has real commit history, and more
+`~/.claude/kaizen/<project-key>/adoption.json` entry yet, the project has real commit history, and more
 than ~20 tracked files already exist for that discipline. It fails open on
 anything ambiguous — no resolvable discipline, no git repo, no `HEAD` yet, a
 tiny scaffold, or any script error — so it can only ever block a genuine,

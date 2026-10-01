@@ -3,9 +3,17 @@ const path = require("path");
 const os = require("os");
 const { execSync } = require("child_process");
 
-const projectRoot = process.cwd();
+const { projectRoot: findRoot, kaizenDir } = require("./lib/project-key");
+
+const projectRoot = findRoot(process.cwd());
 const projectName = path.basename(projectRoot);
-const cachePath = path.join(os.homedir(), ".claude", "kaizen", projectName, "codebase-map.json");
+// Keyed per checkout (folder name + path hash) so two repos called "frontend" don't
+// share a map. The bare-folder-name location is the legacy one: read it if the keyed
+// file doesn't exist yet, so an existing map isn't thrown away, but always point the
+// skill at the keyed path for writing.
+const cachePath = path.join(kaizenDir(projectRoot), "codebase-map.json");
+const legacyPath = path.join(os.homedir(), ".claude", "kaizen", projectName, "codebase-map.json");
+const readPath = fs.existsSync(cachePath) ? cachePath : fs.existsSync(legacyPath) ? legacyPath : null;
 
 function git(args) {
   return execSync(`git ${args}`, { cwd: projectRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
@@ -37,7 +45,7 @@ function dirtyFileCount() {
   }
 }
 
-if (!fs.existsSync(cachePath)) {
+if (!readPath) {
   // Only nudge where a map could actually be built and would actually help:
   // it needs git (the checkpoint is a commit SHA — without one there is nothing
   // to invalidate against), and it needs to look like a real project, since this
@@ -53,7 +61,8 @@ if (!fs.existsSync(cachePath)) {
         `that needs to explore this codebase; it asks permission first. Skip it if this project ` +
         `already has a hand-maintained skill or CLAUDE.md serving as its structural index. Note: ` +
         `a sibling architecture-foundations plugin's PreToolUse gate may also block edits to an ` +
-        `existing, non-trivial codebase for a discipline with no .kaizen/adoption.json entry yet — ` +
+        `existing, non-trivial codebase for a discipline with no entry yet in ` +
+        `${path.join(path.dirname(cachePath), "adoption.json")} (user-level, never inside the repo) — ` +
         `running existing-codebase-adoption satisfies that gate and triggers this skill together.`
     );
   }
@@ -62,7 +71,7 @@ if (!fs.existsSync(cachePath)) {
 
 let cache;
 try {
-  cache = JSON.parse(fs.readFileSync(cachePath, "utf8"));
+  cache = JSON.parse(fs.readFileSync(readPath, "utf8"));
 } catch {
   process.exit(0);
 }
@@ -106,10 +115,16 @@ if (!stalenessNote && head !== null) {
   }
 }
 
+const legacyNote =
+  readPath === legacyPath
+    ? ` MOVED: this map was found at the legacy location ${legacyPath}; the next codebase-map-sync ` +
+      `run must write it to ${cachePath} instead (that folder is keyed to this checkout).`
+    : "";
+
 console.log(
-  `A cached codebase map for "${projectName}" exists at ${cachePath} ` +
+  `A cached codebase map for "${projectName}" exists at ${readPath} ` +
     `(last scanned at commit ${cache.last_scanned_sha}, disciplines: ${disciplines.join(", ")}, ` +
-    `${fileCount} files described).${stalenessNote} For a specific file/feature, grep inside that ` +
+    `${fileCount} files described).${stalenessNote}${legacyNote} For a specific file/feature, grep inside that ` +
     `JSON file for a keyword instead of reading the whole thing or re-scanning with Glob/Grep — each ` +
     `entry sits on its own line with a description attached.`
 );

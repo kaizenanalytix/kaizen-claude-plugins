@@ -185,7 +185,7 @@ repo with no commits has no `HEAD` to key it to — seeding before the first
 commit produces a cache entry that can never be validated for staleness.
 
 Then invoke a sibling `codebase-map` plugin's `codebase-map-sync` skill to
-build `~/.claude/kaizen/<project-name>/codebase-map.json`.
+build `~/.claude/kaizen/<project-key>/codebase-map.json`.
 
 Seeding here rather than on first use is the point: a skeleton is a handful of
 files, so the scan is nearly instant, and every later `Step 0: consult the

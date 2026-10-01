@@ -12,13 +12,14 @@ Discipline-agnostic — works the same whether the codebase is `frontend`,
 
 | Skill | Purpose |
 |---|---|
-| `codebase-map-sync` | Reads (or bootstraps) `~/.claude/kaizen/<project-name>/codebase-map.json`; if the checkpointed SHA is stale, rescans only what changed and updates it, so callers get current facts and a navigable file tree without a full-repo read. Seeds without a permission prompt when a greenfield kickoff has just scaffolded the repo, since a fresh skeleton is nothing to warn about. |
+| `codebase-map-sync` | Reads (or bootstraps) `~/.claude/kaizen/<project-key>/codebase-map.json`; if the checkpointed SHA is stale, rescans only what changed and updates it, so callers get current facts and a navigable file tree without a full-repo read. Seeds without a permission prompt when a greenfield kickoff has just scaffolded the repo, since a fresh skeleton is nothing to warn about. |
 
 ## Setup
 
 Nothing beyond a git repo. The cache lives at
-`~/.claude/kaizen/<project-name>/codebase-map.json` — a unified, per-machine
-location keyed by project folder name, not a file inside the project itself,
+`~/.claude/kaizen/<project-key>/codebase-map.json` — a unified, per-machine
+location keyed by folder name plus a short hash of the repo path (so two
+checkouts named `frontend` don't collide), not a file inside the project itself,
 so it isn't shared across teammates (each developer gets their own). This
 skill only maintains facts about what exists; it does not decide whether a
 project should adopt this library's conventions (that's a sibling

@@ -7,7 +7,21 @@
 //
 // Deliberately terse: this text is paid for on every session, so it states the rules and
 // points at the skill for the why. Must never throw — a SessionStart hook that fails is
-// worse than no hook — hence no filesystem, git, or network access here.
+// worse than no hook — hence no git or network access here. The one filesystem touch is
+// resolving the per-user project folder (a few existsSync calls), and it is wrapped so a
+// failure only drops that line.
+
+let stateLine = [];
+try {
+  const { kaizenDir } = require("./lib/project-key");
+  stateLine = [
+    "",
+    `Per-user Kaizen state for this project: ${kaizenDir(process.cwd())}`,
+    "   (adoption.json, codebase-map.json, guardrails.json live here — never inside the repo).",
+  ];
+} catch {
+  // no line rather than a failing hook
+}
 
 console.log(
   [
@@ -30,7 +44,7 @@ console.log(
     "   directly rather than picking a default silently.",
     "",
     "Read the `working-agreement` skill for the reasoning and the edge cases.",
-  ].join("\n")
+  ].concat(stateLine).join("\n")
 );
 
 process.exit(0);

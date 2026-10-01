@@ -55,7 +55,7 @@ Handle each discipline on its own track:
 
 - **The existing side** → a sibling `architecture-foundations` plugin's
   `existing-codebase-adoption` skill decides adopt-vs-defer, once, and records
-  it in `.kaizen/adoption.json`. This kickoff skill does not touch that side.
+  it in `~/.claude/kaizen/<project-key>/adoption.json`. This kickoff skill does not touch that side.
 - **The new side** → the full sequence above, minus the steps the repo already
   has.
 

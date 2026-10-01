@@ -129,7 +129,7 @@ it probably did.
 Record each completed subtask so a retry reuses it instead of re-solving it. This is what makes
 the loop cheap enough to actually run.
 
-`~/.claude/kaizen/<project-name>/orchestration/<task-id>.json` — per-user, **outside the project**,
+`~/.claude/kaizen/<project-key>/orchestration/<task-id>.json` — per-user, **outside the project**,
 the same place the codebase map and the adoption decision live. Orchestration state is this
 marketplace's bookkeeping, not an artifact of the product, and it has no business being committed
 to someone's codebase:
